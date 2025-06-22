@@ -25,7 +25,154 @@
 //		"foo 1\x002\x003\x00\x00" -> name: foo, data: [1, 2, 3]
 //		"bar false\x00false\x00true\x00\x00" -> name: foo, data: [false, false, true]
 
+use "std/bufio"
+use "std/bytes"
+use "std/io"
+use "std/os"
+use "std/unicode"
+use "std/unsafe"
+
 const (
 	_EOF       = 0
 	_EMPTY_LEN = 1
 )
+
+fn newDataScanner(mut r: io::Reader): &bufio::Scanner {
+	mut scan := bufio::Scanner.New(r)
+	scan.Split(bufio::ScanLines)
+	scan.Buffer(nil, int.Max)
+	ret scan
+}
+
+fn clearDatabase(mut file: &os::File)! {
+	file.Truncate(0) else { error(error) }
+}
+
+fn createCollection[T](mut db: &LDB, name: str)!: &Collection[T] {
+	db.file.Seek(0, io::SeekEnd) else { error(error) }
+	db.file.WriteStr("\n" + name + " \x00") else { error(error) }
+	offs := db.file.Seek(0, io::SeekCurrent) else { error(error) }
+	ret &Collection[T]{
+		db: db,
+		name: name,
+		offs: offs,
+		len: _EMPTY_LEN,
+	}
+}
+
+fn dropCollection(mut file: &os::File, name: str)! {
+	file.Seek(0, io::SeekStart) else { error(error) }
+	mut scan := newDataScanner(file)
+	mut offs, mut lastoffs := i64(0), i64(0)
+	mut remove := false
+	for {
+		if remove {
+			file.Seek(offs, io::SeekStart) else { error(error) }
+			mut rest := io::ReadAll(file) else { error(error) }
+			if scan.EOF() && lastoffs > 0 {
+				lastoffs-- // trim new-line
+			}
+			file.Truncate(lastoffs) else { error(error) }
+			file.Seek(0, io::SeekEnd) else { error(error) }
+			file.Write(rest) else { error(error) }
+			break
+		}
+		mut ok := scan.Scan() else { error(error) }
+		if !ok {
+			break
+		}
+		mut line := scan.Token()
+		collectionName, _ := splitLine(line)
+		remove = unsafe::BytesStr(collectionName) == name
+		lastoffs = offs
+		if !scan.EOF() {
+			offs++ // new-line
+		}
+		offs += i64(len(line))
+	}
+}
+
+fn readCollection[T](mut db: &LDB, name: str)!: &Collection[T] {
+	db.file.Seek(0, io::SeekStart) else { error(error) }
+	mut scan := newDataScanner(db.file)
+	mut offs := i64(0)
+	for {
+		mut ok := scan.Scan() else { error(error) }
+		if !ok {
+			ret nil
+		}
+		if !scan.EOF() {
+			offs++ // new-line
+		}
+		mut line := scan.Token()
+		collectionName, datalen := splitLine(line)
+		if unsafe::BytesStr(collectionName) != name {
+			offs += i64(len(line))
+			continue
+		}
+		offs += i64(len(collectionName))
+		offs++ // separator space
+
+		mut collection := new(Collection[T])
+		collection.db = db
+		collection.name = str(collectionName)
+		collection.offs = offs
+		collection.len = datalen
+
+		ret collection
+	}
+}
+
+fn readCollectionData(mut file: &os::File, offs: i64, len: i64)!: []byte {
+	file.Seek(offs, io::SeekStart) else { error(error) }
+	mut data := make([]byte, len)
+	n := file.Read(data) else { error(error) }
+	if i64(n) != len {
+		panic("ldb: corrupted database")
+	}
+	ret data
+}
+
+fn writeCollection[T](mut collection: &Collection[T], data: []byte)! {
+	mut file := collection.db.file
+	file.Seek(collection.offs+collection.len, io::SeekStart) else { error(error) }
+	mut rest := io::ReadAll(file) else { error(error) }
+	file.Truncate(collection.offs) else { error(error) }
+	file.Seek(0, io::SeekEnd) else { error(error) }
+	file.Write(data) else { error(error) }
+	file.Write(rest) else { error(error) }
+}
+
+// Reads collection names from the database file.
+fn readCollections(mut f: &os::File)!: (collections: []str) {
+	f.Seek(0, io::SeekStart) else { error(error) }
+	mut scan := newDataScanner(f)
+	for {
+		ok := scan.Scan() else { error(error) }
+		if !ok {
+			break
+		}
+		mut line := scan.Token()
+		name, _ := splitLine(line)
+		collections = append(collections, str(name))
+	}
+	ret
+}
+
+fn splitLine(mut line: []byte): (name: []byte, datalen: i64) {
+	i := bytes::IndexByte(line, _EOF)
+	if i == -1 {
+		panic("ldb: corrupted database")
+	}
+	name = bytes::TrimSpace(line[:i])
+	datalen = i64(len(line[i+1:]))
+	if len(name) == 0 || datalen == 0 {
+		panic("ldb: corrupted database")
+	}
+	ret
+}
+
+// Reports whether the name is suitable for LDB collection.
+fn isValidName(name: str): bool {
+	ret bytes::IndexByte(unsafe::StrBytes(name), _EOF) < 0
+}

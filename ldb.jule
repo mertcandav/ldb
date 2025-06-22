@@ -1,0 +1,146 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/os"
+use "std/sync"
+
+// Proper type to store a Collection instance with arbitrary type.
+// It eliminates the associated generic type of the Collection[T].
+// To use properly, cast between Collection[T] and arbitraryCollection using Unsafe Jule.
+type arbitraryCollection: &uintptr
+
+// Local Database instance.
+// A LDB instance must not be copied.
+struct LDB {
+	mut file: &os::File
+	mtx:      sync::RWMutex
+
+	// Internal cache for the collections.
+	// Returns the common collection for the name, if collection is already connected.
+	// Also used to check if there is any collection is connected to database.
+	cache: map[str]arbitraryCollection
+}
+
+impl LDB {
+	fn readLock(self) { self.mtx.RLock() }
+	fn readUnlock(self) { self.mtx.RUnlock() }
+	fn writeLock(self) { self.mtx.Lock() }
+	fn writeUnlock(self) { self.mtx.Unlock() }
+
+	// Reports whether the database connection is open.
+	fn IsOpen(&self): bool {
+		ret self.file != nil
+	}
+
+	// Returns collection from the database.
+	// If collection is not exist in the specified name, it will be created.
+	// Type T must be supported by the standard JSON package.
+	fn GetCollection[T](mut &self, name: str)!: &Collection[T] {
+		self.readLock()
+		defer { self.readUnlock() }
+
+		if !self.IsOpen() {
+			panic("LDB.GetCollection: database connection is closed")
+		}
+		if !isValidName(name) {
+			panic("LDB.GetCollection: invalid name for collection: \"" + name + "\"")
+		}
+
+		// If cache is not initialized yet, do it.
+		// We will use it eventually.
+		if self.cache == nil {
+			self.cache = map[str]arbitraryCollection{}
+		}
+
+		// Check whether the collection name is exist in the cache.
+		// If so, return the already connected collection instance.
+		// We should return common instance for collections.
+		cache, ok := self.cache[name]
+		if ok {
+			ret unsafe { *(*&Collection[T])(&cache) }
+		}
+
+		// Collection is not cached, so it is not connected to database.
+		// Read it from the non-volatile memory, create it if it is not exist.
+		mut collection := readCollection[T](self, name) else { error(error) }
+		if collection == nil {
+			collection = createCollection[T](self, name) else { error(error) }
+		}
+
+		// Add collection instance to the cache and return.
+		self.cache[name] = unsafe { *(*arbitraryCollection)(&collection) }
+		ret collection
+	}
+
+	// Removes collection from the database.
+	// If collection is not exist in the specified name, does nothing.
+	// If any collection linked to the name currently, it will fail.
+	// Close the collection connection before drop it.
+	fn DropCollection(mut &self, name: str)! {
+		self.writeLock()
+		defer { self.writeUnlock() }
+
+		if !self.IsOpen() {
+			panic("LDB.DropCollection: database connection is closed")
+		}
+		if !isValidName(name) {
+			panic("LDB.DropCollection: invalid name for collection: \"" + name + "\"")
+		}
+
+		if self.cache != nil {
+			_, ok := self.cache[name]
+			if ok {
+				panic("LDB.DropCollection: collection is connected to database actively: \"" + name + "\"")
+			}
+		}
+		dropCollection(self.file, name) else { error(error) }
+	}
+
+	// Removes all collections from the database.
+	// If any collection linked currently, it will fail.
+	// Close the collection connections before drop them.
+	fn ClearCollections(mut &self)! {
+		self.writeLock()
+		defer { self.writeUnlock() }
+
+		if !self.IsOpen() {
+			panic("LDB.ClearCollection: database connection is closed")
+		}
+
+		if len(self.cache) > 0 {
+			panic("LDB.ClearCollection: at least one collection is connected to database actively")
+		}
+		clearDatabase(self.file) else { error(error) }
+	}
+
+	// Returns names of collections.
+	fn Collections(&self)!: []str {
+		self.readLock()
+		defer { self.readUnlock() }
+
+		if !self.IsOpen() {
+			panic("LDB.Collections: database connection is closed")
+		}
+
+		ret readCollections(self.file) else { error(error) }
+	}
+
+	// Closes the database connection.
+	// If connection is already closed, it does nothing.
+	fn Close(&self) {
+		// Use write-lock to avoid readers and writers, if any.
+		self.writeLock()
+		if self.IsOpen() {
+			self.file.Close() else {}
+		}
+		self.writeUnlock()
+	}
+}
+
+// Opens new LDB by path.
+// If database is not exist, will be created.
+fn Open(path: str)!: &LDB {
+	mut f := os::OpenFile(path, os::O_RDWR|os::O_CREATE, 0666) else { error(error) }
+	ret &LDB{file: f}
+}
