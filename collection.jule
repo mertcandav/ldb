@@ -222,6 +222,19 @@ impl Collection {
 		self.cache = nil
 	}
 
+	// Returns ready-to-use query for the collection.
+	// Panics if database-read fails.
+	// Locks the read-lock, avoid misuse of Query, otherwise behavior is undefined.
+	fn Query(mut &self): Query[T] {
+		self.isOpen(_READ, "Collection.Query: database connection is closed")
+
+		mut data := self.readData()!
+		ret Query[T]{
+			owner: self,
+			data: data,
+		}
+	}
+
 	// Drops the collection ownership.
 	// When a collection closed, all collections will be closed for the same name.
 	fn Close(mut &self) {

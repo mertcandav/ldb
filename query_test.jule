@@ -1,0 +1,104 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use "std/testing"
+
+struct pseudoData {
+	Int:    int
+	Float:  f64
+	String: str
+}
+
+let pseudoDatas: []pseudoData = [
+	{98, 0.34, "foo"},
+	{89, 34, "bar"},
+	{0, 0, "baz"},
+	{-0, -0, "baz"},
+	{-1, -1, "baz"},
+	{-1, 987, "bar"},
+	{+0, +0, "foo"},
+	{34, 2435, "foo"},
+	{34, 5678, "bar"},
+]
+
+fn getTestQuery(): Query[pseudoData] {
+	ret Query[pseudoData]{
+		data: nil, // use cache
+		cache: append(make([]pseudoData, 0), pseudoDatas...),
+	}
+}
+
+#test
+fn testQuerySum(t: &testing::T) {
+	i := getTestQuery().
+		Sum(fn|d| d.Int)
+	if i != 253 {
+		t.Errorf("Query.Sum: returns {}, expected 253", i)
+	}
+	f := getTestQuery().
+		Sum(fn|d| d.Float)
+	if f != 9133.34 {
+		t.Errorf("Query.Sum: returns {}, expected 9133.34", f)
+	}
+}
+
+#test
+fn testQueryContains(t: &testing::T) {
+	mut r := getTestQuery().
+		Contains(fn|d| d.Int == 89)
+	if !r {
+		t.Errorf("Query.Contains: returns false, expected true")
+	}
+	r = getTestQuery().
+		Contains(fn|d| d.Int == 100)
+	if r {
+		t.Errorf("Query.Contains: returns true, expected false")
+	}
+}
+
+#test
+fn testQueryCount(t: &testing::T) {
+	r := getTestQuery().
+		Count(fn|d| d.Int > 0)
+	if r != 4 {
+		t.Errorf("Query.Count: returns {}, expected 4", r)
+	}
+}
+
+#test
+fn testQueryWhere(t: &testing::T) {
+	expected := pseudoDatas[:2]
+	r := getTestQuery().
+		Where(fn|d| d.Int == 98 || d.Int == 89).
+		Unwrap()
+	if len(r) != len(expected) {
+		t.Errorf("Query.Where: returns unexpected result")
+		ret
+	}
+	for i in r {
+		if r[i] != expected[i] {
+			t.Errorf("Query.Where: returns unexpected result")
+			ret
+		}
+	}
+}
+
+#test
+fn testQueryReverse(t: &testing::T) {
+	r := getTestQuery().
+		Reverse().
+		Unwrap()
+	if len(r) != len(pseudoDatas) {
+		t.Errorf("Query.Reverse: returns unexpected result")
+		ret
+	}
+	mut j := len(pseudoDatas) - 1
+	for i in r {
+		if r[i] != pseudoDatas[j] {
+			t.Errorf("Query.Reverse: returns unexpected result")
+			ret
+		}
+		j--
+	}
+}
