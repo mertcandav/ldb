@@ -1,0 +1,64 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+use ldb "."
+use "std/fmt"
+use "std/os"
+
+struct User {
+	Name: str
+	Age:  int
+}
+
+fn main() {
+	mut db := ldb::Open("test.db")!
+	defer {
+		db.Close()
+		os::Remove("test.db")!
+	}
+
+	mut users := db.GetCollection[User]("users")!
+	users.Append(
+		{"root", 0},
+		{"admin", -1},
+		{"Foo", 18},
+		{"Bar", 28},
+		{"Baz", 93},
+		{"Fizz", 53},
+		{"Buzz", 36},
+		{"ABC", 36},
+		{"XYZ", 18})!
+
+	mut n := users.Len()!
+	if n != 9 {
+		panic("unexpected length")
+	}
+
+	t := users.Query().
+		Where(fn|user| user.Age > 0).
+		Sum(fn|user| user.Age)
+	fmt::Println("Total of user age: ", t)
+
+	ageRange := users.Query().
+		Where(fn|user| user.Age > 0).
+		GroupBy(fn|user| user.Age).
+		Map(fn|g| g.Len())
+	fmt::Println("user count per age: ", ageRange)
+
+	mut test := db.GetCollection[User]("test")!
+	test.Append(users.Query().Unwrap()...)!
+
+	users.Close()
+	test.Close()
+
+	db.DropCollection("users")!
+	users = db.GetCollection[User]("users")!
+	n = users.Len()!
+	if n != 0 {
+		panic("unexpected length after drop")
+	}
+	users.Close()
+
+	db.ClearCollections()!
+}
