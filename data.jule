@@ -12,8 +12,8 @@
 // Collections
 //	Collections are value arrays stored in the database.
 //	Each line of database file is a collection-data pair.
-//	Collection names cannot include space runes, since whitespace is separator.
-//	In a line, collection identifier cames first, then whitespace as separator,
+//	Collection names cannot include separator byte.
+//	In a line, collection identifier cames first, then separator byte,
 //	rest of the bytes are the data representation of the collection.
 //	Every element should encode and decode with JSON.
 //
@@ -21,9 +21,9 @@
 //	To represent end of the collection data, should be used EOF byte.
 //
 // Example Data Representations
-//	"collection1 \x00"                   -> name: collection1 data: []
-//	"foo 1\x002\x003\x00\x00"            -> name: foo         data: [1, 2, 3]
-//	"bar false\x00false\x00true\x00\x00" -> name: foo         data: [false, false, true]
+//	"collection1\x00\x00"                   -> name: collection1 data: []
+//	"foo\x001\x002\x003\x00\x00"            -> name: foo         data: [1, 2, 3]
+//	"bar\x00false\x00false\x00true\x00\x00" -> name: foo         data: [false, false, true]
 
 use "std/bufio"
 use "std/bytes"
@@ -33,8 +33,8 @@ use "std/unicode"
 use "std/unsafe"
 
 const (
-	_EOF       = 0
-	_EMPTY_LEN = 1
+	_EOF       = 0 // Separator byte.
+	_EMPTY_LEN = 1 // Length of the empty collection data including separator byte.
 )
 
 fn newDataScanner(mut r: io::Reader): &bufio::Scanner {
