@@ -49,9 +49,15 @@ fn clearDatabase(mut file: &os::File)! {
 }
 
 fn createCollection[T](mut db: &LDB, name: str)!: &Collection[T] {
-	db.file.Seek(0, io::SeekEnd) else { error(error) }
-	db.file.WriteStr("\n" + name + " \x00") else { error(error) }
-	offs := db.file.Seek(0, io::SeekCurrent) else { error(error) }
+	mut offs := db.file.Seek(0, io::SeekEnd) else { error(error) }
+	mut r := name + "\x00\x00"
+	if offs > 0 {
+		// Add new-line if database is not empty.
+		r = "\n" + r
+	}
+	db.file.WriteStr(r) else { error(error) }
+	offs = db.file.Seek(0, io::SeekEnd) else { error(error) }
+	offs-- // point to EOF byte
 	ret &Collection[T]{
 		db: db,
 		name: name,
