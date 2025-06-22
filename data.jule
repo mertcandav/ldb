@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
-// The LDB database data representation reference
+// The LDB data representation reference
 // ----------------------------------------------
 //
 // Special Bytes
@@ -20,10 +20,10 @@
 //	To represent an array element, value data should came first, then EOF byte.
 //	To represent end of the collection data, should be used EOF byte.
 //
-//	Example Data Representations
-//		"collection1 \x00"        -> name: collection1, data: []
-//		"foo 1\x002\x003\x00\x00" -> name: foo, data: [1, 2, 3]
-//		"bar false\x00false\x00true\x00\x00" -> name: foo, data: [false, false, true]
+// Example Data Representations
+//	"collection1 \x00"                   -> name: collection1 data: []
+//	"foo 1\x002\x003\x00\x00"            -> name: foo         data: [1, 2, 3]
+//	"bar false\x00false\x00true\x00\x00" -> name: foo         data: [false, false, true]
 
 use "std/bufio"
 use "std/bytes"
