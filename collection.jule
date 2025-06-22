@@ -2,6 +2,16 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/encoding/json"
+use "std/slices"
+use "std/sync"
+
+// Database access modes.
+const (
+	_READ = iota
+	_WRITE
+)
+
 // LDB collection instance.
 // A Collection instance must not be copied.
 struct Collection[T] {
@@ -10,4 +20,220 @@ struct Collection[T] {
 	name: str
 	offs: i64 // Offset of the data in the database representation.
 	len:  i64 // Length of the collection data.
+
+	// Cache for the internal data.
+	mut cache: []byte
+}
+
+impl Collection {
+	// Returns name of the collection.
+	fn Name(&self): str {
+		ret self.name
+	}
+
+	// Checks the database connection and panics with msg if it is closed.
+	// Locks for the relevant access mode before return.
+	fn isOpen(&self, access: int, msg: str) {
+		if self.db == nil {
+			panic(msg)
+		}
+		if access&_WRITE == _WRITE {
+			self.db.writeLock()
+		} else {
+			self.db.readLock()
+		}
+		if !self.db.IsOpen() {
+			panic(msg)
+		}
+	}
+
+	// Returns collection data from the non-volatile memory.
+	fn readData(&self)!: []byte {
+		if self.cache == nil {
+			self.cache = readCollectionData(self.db.file, self.offs, self.len) else { error(error) }
+		}
+		ret self.cache
+	}
+
+	// Returns number of records in the collection.
+	fn Len(&self)!: (n: int) {
+		self.isOpen(_READ, "Collection.Len: database connection is closed")
+
+		mut data := self.readData() else { error(error) }
+		self.db.readUnlock()
+
+		mut scan := scanner.new(data)
+		for {
+			mut token := scan.scan()
+			if token == nil { // EOF
+				ret n
+			}
+			n++
+		}
+	}
+
+	// Iterates values of collection.
+	fn Iter(mut &self, f: fn(mut T))! {
+		self.isOpen(_READ, "Collection.Iter: database connection is closed")
+
+		mut data := self.readData() else { error(error) }
+		self.db.readUnlock()
+
+		mut scan := scanner.new(data)
+		for {
+			mut token := scan.scan()
+			if token == nil { // EOF
+				break
+			}
+			let mut v: T
+			json::Decode(token, v) else { error(error) }
+			f(v)
+		}
+	}
+
+	// Iterates values of collection.
+	// Breaks iteration when function f returns false.
+	fn Iter2(mut &self, f: fn(mut T): bool)! {
+		self.isOpen(_READ, "Collection.Iter: database connection is closed")
+
+		mut data := self.readData() else { error(error) }
+		self.db.readUnlock()
+
+		mut scan := scanner.new(data)
+		for {
+			mut token := scan.scan()
+			if token == nil { // EOF
+				break
+			}
+			let mut v: T
+			json::Decode(token, v) else { error(error) }
+			if !f(v) {
+				break
+			}
+		}
+	}
+
+	// Appends values to collection.
+	fn Append(mut &self, mut values: ...T)! {
+		self.isOpen(_WRITE, "Collection.Append: database connection is closed")
+		defer { self.db.writeUnlock() }
+
+		mut data := self.readData() else { error(error) }
+		data = data[:len(data)-1] // remove trailing EOF byte
+		for _, v in values {
+			bytes := json::Encode(v) else { error(error) }
+			data = append(data, bytes...)
+			data = append(data, _EOF) // Add trailing zero byte to EOF for the value.
+		}
+		data = append(data, _EOF) // Add trailing EOF zero byte for the data.
+
+		writeCollection(self, data) else { error(error) }
+		self.len = i64(len(data))
+		self.cache = data
+	}
+
+	// Maps data to result of f.
+	fn Map(mut &self, f: fn(T): T)! {
+		self.isOpen(_WRITE, "Collection.Map: database connection is closed")
+		defer { self.db.writeUnlock() }
+
+		mut data := self.readData() else { error(error) }
+		mut scan := scanner.new(data)
+		data = make([]byte, 0)
+		for {
+			mut token := scan.scan()
+			if token == nil { // EOF
+				break
+			}
+			let mut v: T
+			json::Decode(token, v) else { error(error) }
+			v = f(v)
+			bytes := json::Encode(v) else { error(error) }
+			data = append(data, bytes...)
+			data = append(data, _EOF) // Add trailing zero byte to EOF for the value.
+		}
+		data = append(data, _EOF) // Add trailing EOF zero byte for the data.
+
+		writeCollection(self, data) else { error(error) }
+		self.len = i64(len(data))
+		self.cache = data
+	}
+
+	// Updates data by f.
+	// The function f must filter data if needed and update the mutable reference.
+	fn Update(mut &self, f: fn(mut &t: T))! {
+		self.isOpen(_WRITE, "Collection.Update: database connection is closed")
+		defer { self.db.writeUnlock() }
+
+		mut data := self.readData() else { error(error) }
+		mut scan := scanner.new(data)
+		data = make([]byte, 0)
+		for {
+			mut token := scan.scan()
+			if token == nil { // EOF
+				break
+			}
+			let mut v: T
+			json::Decode(token, v) else { error(error) }
+			f(v)
+			bytes := json::Encode(v) else { error(error) }
+			data = append(data, bytes...)
+			data = append(data, _EOF) // Add trailing zero byte to EOF for the value.
+		}
+		data = append(data, _EOF) // Add trailing EOF zero byte for the data.
+
+		writeCollection(self, data) else { error(error) }
+		self.len = i64(len(data))
+		self.cache = data
+	}
+
+	// Filters and removes matched data by f.
+	fn Drop(mut &self, f: fn(T): bool)! {
+		self.isOpen(_WRITE, "Collection.Drop: database connection is closed")
+		defer { self.db.writeUnlock() }
+
+		mut data := self.readData() else { error(error) }
+		mut scan := scanner.new(data)
+		data = make([]byte, 0)
+		for {
+			mut token := scan.scan()
+			if token == nil { // EOF
+				break
+			}
+			let mut v: T
+			json::Decode(token, v) else { error(error) }
+			if !f(v) {
+				data = append(data, token...)
+				data = append(data, _EOF) // Add trailing zero byte to EOF for the value.
+			}
+		}
+		data = append(data, _EOF) // Add trailing EOF zero byte for the data.
+
+		writeCollection(self, data) else { error(error) }
+		self.len = i64(len(data))
+		self.cache = data
+	}
+
+	// Clears internal cache.
+	// It may help to reduce memory use.
+	// But triggers caching and reading from non-volatile memory in next CRUD.
+	// Unnecessary use of this method may cause significant performance issues.
+	fn ClearCache(mut &self) {
+		self.cache = nil
+	}
+
+	// Drops the collection ownership.
+	// When a collection closed, all collections will be closed for the same name.
+	fn Close(mut &self) {
+		self.isOpen(_WRITE, "Collection.Close: database connection is closed")
+
+		delete(self.db.cache, self.name)
+		self.db.writeUnlock()
+
+		self.db = nil
+		self.name = ""
+		self.len = 0
+		self.offs = 0
+		self.cache = nil
+	}
 }
