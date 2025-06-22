@@ -1,0 +1,31 @@
+// Copyright 2025 mertcandav.
+// Use of this source code is governed by a BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// The LDB database data representation reference
+// ----------------------------------------------
+//
+// Special Bytes
+//	The separator byte is zero, aka NUL.
+//	Separator bytes used to represent EOF of any collection name, value, and data.
+//
+// Collections
+//	Collections are value arrays stored in the database.
+//	Each line of database file is a collection-data pair.
+//	Collection names cannot include space runes, since whitespace is separator.
+//	In a line, collection identifier cames first, then whitespace as separator,
+//	rest of the bytes are the data representation of the collection.
+//	Every element should encode and decode with JSON.
+//
+//	To represent an array element, value data should came first, then EOF byte.
+//	To represent end of the collection data, should be used EOF byte.
+//
+//	Example Data Representations
+//		"collection1 \x00"        -> name: collection1, data: []
+//		"foo 1\x002\x003\x00\x00" -> name: foo, data: [1, 2, 3]
+//		"bar false\x00false\x00true\x00\x00" -> name: foo, data: [false, false, true]
+
+const (
+	_EOF       = 0
+	_EMPTY_LEN = 1
+)
