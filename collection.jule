@@ -3,7 +3,6 @@
 // license that can be found in the LICENSE file.
 
 use "std/encoding/json"
-use "std/slices"
 use "std/sync"
 
 // Database access modes.
@@ -62,14 +61,13 @@ impl Collection {
 		mut data := self.readData() else { error(error) }
 		self.db.readUnlock()
 
-		mut scan := scanner.new(data)
-		for {
-			mut token := scan.scan()
-			if token == nil { // EOF
-				ret n
+		for _, b in data {
+			if b == _EOF {
+				n++
 			}
-			n++
 		}
+		n-- // Remove trailing EOF byte of the data.
+		ret
 	}
 
 	// Iterates values of collection.
