@@ -95,7 +95,7 @@ customers.Append({
 ```
 ```rust
 // DELETE FROM Customers WHERE Name = 'Alfreds Futterkiste';
-customers.Drop(fn|c| c.Name == "Alfreds Futterkiste")!
+customers.Delete(fn|c| c.Name == "Alfreds Futterkiste")!
 ```
 ```rust
 // UPDATE Customers

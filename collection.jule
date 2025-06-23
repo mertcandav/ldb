@@ -186,8 +186,8 @@ impl Collection {
 	}
 
 	// Filters and removes matched data by f.
-	fn Drop(mut &self, f: fn(T): bool)! {
-		self.isOpen(_WRITE, "Collection.Drop: database connection is closed")
+	fn Delete(mut &self, f: fn(T): bool)! {
+		self.isOpen(_WRITE, "Collection.Delete: database connection is closed")
 		defer { self.db.writeUnlock() }
 
 		mut data := self.readData() else { error(error) }

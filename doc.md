@@ -1,5 +1,3 @@
-Documentation created by [juledoc](https://github.com/julelang/juledoc)
-
 ## Index
 
 [fn Open\(path: str\)\!: &amp;LDB](#open)\
@@ -45,7 +43,7 @@ Documentation created by [juledoc](https://github.com/julelang/juledoc)
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Append\(mut &amp;self, mut values: \.\.\.T\)\!](#append)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Map\(mut &amp;self, f: fn\(T\): T\)\!](#map-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Update\(mut &amp;self, f: fn\(mut &amp;t: T\)\)\!](#update)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Drop\(mut &amp;self, f: fn\(T\): bool\)\!](#drop)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Delete\(mut &amp;self, f: fn\(T\): bool\)\!](#delete)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn ClearCache\(mut &amp;self\)](#clearcache)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Query\(mut &amp;self\): Query\[T\]](#query-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Close\(mut &amp;self\)](#close-1)
@@ -352,9 +350,9 @@ fn Update(mut &self, f: fn(mut &t: T))!
 ```
 Updates data by f\. The function f must filter data if needed and update the mutable reference\.
 
-### Drop
+### Delete
 ```jule
-fn Drop(mut &self, f: fn(T): bool)!
+fn Delete(mut &self, f: fn(T): bool)!
 ```
 Filters and removes matched data by f\.
 
