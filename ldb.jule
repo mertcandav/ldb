@@ -77,21 +77,21 @@ impl LDB {
 	// If collection is not exist in the specified name, does nothing.
 	// If any collection linked to the name currently, it will fail.
 	// Close the collection connection before drop it.
-	fn DropCollection(mut &self, name: str)! {
+	fn DeleteCollection(mut &self, name: str)! {
 		self.writeLock()
 		defer { self.writeUnlock() }
 
 		if !self.IsOpen() {
-			panic("LDB.DropCollection: database connection is closed")
+			panic("LDB.DeleteCollection: database connection is closed")
 		}
 		if !isValidName(name) {
-			panic("LDB.DropCollection: invalid name for collection: \"" + name + "\"")
+			panic("LDB.DeleteCollection: invalid name for collection: \"" + name + "\"")
 		}
 
 		if self.cache != nil {
 			_, ok := self.cache[name]
 			if ok {
-				panic("LDB.DropCollection: collection is connected to database actively: \"" + name + "\"")
+				panic("LDB.DeleteCollection: collection is connected to database actively: \"" + name + "\"")
 			}
 		}
 		dropCollection(self.file, name) else { error(error) }

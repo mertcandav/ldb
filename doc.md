@@ -31,7 +31,7 @@
 [struct LDB](#ldb)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn IsOpen\(&amp;self\): bool](#isopen)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn GetCollection\[T\]\(mut &amp;self, name: str\)\!: &amp;Collection\[T\]](#getcollection)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn DropCollection\(mut &amp;self, name: str\)\!](#dropcollection)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn DeleteCollection\(mut &amp;self, name: str\)\!](#deletecollection)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn ClearCollections\(mut &amp;self\)\!](#clearcollections)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Collections\(&amp;self\)\!: \[\]str](#collections)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Close\(&amp;self\)](#close)\
@@ -276,9 +276,9 @@ fn GetCollection[T](mut &self, name: str)!: &Collection[T]
 ```
 Returns collection from the database\. If collection is not exist in the specified name, it will be created\. Type T must be supported by the standard JSON package\.
 
-### DropCollection
+### DeleteCollection
 ```jule
-fn DropCollection(mut &self, name: str)!
+fn DeleteCollection(mut &self, name: str)!
 ```
 Removes collection from the database\. If collection is not exist in the specified name, does nothing\. If any collection linked to the name currently, it will fail\. Close the collection connection before drop it\.
 

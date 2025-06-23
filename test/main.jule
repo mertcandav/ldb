@@ -52,7 +52,7 @@ fn main() {
 	users.Close()
 	test.Close()
 
-	db.DropCollection("users")!
+	db.DeleteCollection("users")!
 	users = db.GetCollection[User]("users")!
 	n = users.Len()!
 	if n != 0 {
