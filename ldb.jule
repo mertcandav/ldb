@@ -23,10 +23,10 @@ struct LDB {
 }
 
 impl LDB {
-	fn readLock(self) { self.mtx.RLock() }
-	fn readUnlock(self) { self.mtx.RUnlock() }
-	fn writeLock(self) { self.mtx.Lock() }
-	fn writeUnlock(self) { self.mtx.Unlock() }
+	fn readLock(*self) { self.mtx.RLock() }
+	fn readUnlock(*self) { self.mtx.RUnlock() }
+	fn writeLock(*self) { self.mtx.Lock() }
+	fn writeUnlock(*self) { self.mtx.Unlock() }
 
 	// Reports whether the database connection is open.
 	fn IsOpen(&self): bool {

@@ -35,12 +35,12 @@ struct Query[T] {
 
 impl Query {
 	// Reports whether the collection data is cached.
-	fn isCached(self): bool {
+	fn isCached(*self): bool {
 		ret self.data == nil
 	}
 
 	// Release the read-lock for this query.
-	fn readUnlock(self) {
+	fn readUnlock(*self) {
 		if self.owner != nil {
 			self.owner.db.readUnlock()
 		}
@@ -56,7 +56,7 @@ impl Query {
 	// Since caching drops the collection data,
 	// trying to cache already cached query instance may result as empty cache.
 	// Behavior is undefined for repetetive use.
-	fn Cache(self): Query[T] {
+	fn Cache(*self): Query[T] {
 		if len(self.data) <= _EMPTY_LEN {
 			self.cache = nil
 		} else {
@@ -67,24 +67,24 @@ impl Query {
 					break
 				}
 				let mut v: T
-				json::Decode(token, v) else {
+				json::Decode(token, &v) else {
 					panic("ldb: corrupted database")
 				}
 				self.cache = append(self.cache, v)
 			}
 		}
 		self.data = nil // switch to cache
-		ret self
+		ret *self
 	}
 
-	fn cachedSum[E: numeric](self, f: fn(T): E): (r: E) {
+	fn cachedSum[E: numeric](*self, f: fn(T): E): (r: E) {
 		for _, v in self.cache {
 			r += f(v)
 		}
 		ret
 	}
 
-	fn uncachedSum[E: numeric](self, f: fn(T): E): (r: E) {
+	fn uncachedSum[E: numeric](*self, f: fn(T): E): (r: E) {
 		mut scan := scanner.new(self.data)
 		for {
 			mut token := scan.scan()
@@ -92,7 +92,7 @@ impl Query {
 				break
 			}
 			let mut v: T
-			json::Decode(token, v) else {
+			json::Decode(token, &v) else {
 				panic("ldb: corrupted database")
 			}
 			r += f(v)
@@ -103,7 +103,7 @@ impl Query {
 	// Returns total value of the results of f.
 	// The start value is zero.
 	// Unlocks the read-lock.
-	fn Sum[E: numeric](self, f: fn(T): E): (r: E) {
+	fn Sum[E: numeric](*self, f: fn(T): E): (r: E) {
 		if self.isCached() {
 			r = self.cachedSum(f)
 		} else {
@@ -113,7 +113,7 @@ impl Query {
 		ret
 	}
 
-	fn cachedCount(self, f: fn(T): bool): (n: int) {
+	fn cachedCount(*self, f: fn(T): bool): (n: int) {
 		for _, v in self.cache {
 			if f(v) {
 				n++
@@ -122,7 +122,7 @@ impl Query {
 		ret
 	}
 
-	fn uncachedCount(self, f: fn(T): bool): (n: int) {
+	fn uncachedCount(*self, f: fn(T): bool): (n: int) {
 		mut scan := scanner.new(self.data)
 		for {
 			mut token := scan.scan()
@@ -130,7 +130,7 @@ impl Query {
 				break
 			}
 			let mut v: T
-			json::Decode(token, v) else {
+			json::Decode(token, &v) else {
 				panic("ldb: corrupted database")
 			}
 			if f(v) {
@@ -143,7 +143,7 @@ impl Query {
 	// Counts values by condition.
 	// To count a value, f must report true for it.
 	// Unlocks the read-lock.
-	fn Count(self, f: fn(T): bool): (n: int) {
+	fn Count(*self, f: fn(T): bool): (n: int) {
 		if self.isCached() {
 			n = self.cachedCount(f)
 		} else {
@@ -153,7 +153,7 @@ impl Query {
 		ret
 	}
 
-	fn cachedContains(self, f: fn(T): bool): bool {
+	fn cachedContains(*self, f: fn(T): bool): bool {
 		for _, v in self.cache {
 			if f(v) {
 				ret true
@@ -162,7 +162,7 @@ impl Query {
 		ret false
 	}
 
-	fn uncachedContains(self, f: fn(T): bool): bool {
+	fn uncachedContains(*self, f: fn(T): bool): bool {
 		mut scan := scanner.new(self.data)
 		for {
 			mut token := scan.scan()
@@ -170,7 +170,7 @@ impl Query {
 				break
 			}
 			let mut v: T
-			json::Decode(token, v) else {
+			json::Decode(token, &v) else {
 				panic("ldb: corrupted database")
 			}
 			if f(v) {
@@ -182,7 +182,7 @@ impl Query {
 
 	// Reports whether data includes at least one value reported true by f.
 	// Unlocks the read-lock.
-	fn Contains(self, f: fn(T): bool): (r: bool) {
+	fn Contains(*self, f: fn(T): bool): (r: bool) {
 		if self.isCached() {
 			r = self.cachedContains(f)
 		} else {
@@ -192,7 +192,7 @@ impl Query {
 		ret r
 	}
 
-	fn cachedWhere(self, f: fn(T): bool) {
+	fn cachedWhere(*self, f: fn(T): bool) {
 		mut i := 0
 		for _, v in self.cache {
 			if f(v) {
@@ -203,7 +203,7 @@ impl Query {
 		self.cache = self.cache[:i]
 	}
 
-	fn uncachedWhere(self, f: fn(T): bool) {
+	fn uncachedWhere(*self, f: fn(T): bool) {
 		mut scan := scanner.new(self.data)
 		for {
 			mut token := scan.scan()
@@ -211,7 +211,7 @@ impl Query {
 				break
 			}
 			let mut v: T
-			json::Decode(token, v) else {
+			json::Decode(token, &v) else {
 				panic("ldb: corrupted database")
 			}
 			if f(v) {
@@ -222,18 +222,18 @@ impl Query {
 	}
 
 	// Filters data by result of f.
-	fn Where(self, f: fn(T): bool): Query[T] {
+	fn Where(*self, f: fn(T): bool): Query[T] {
 		if self.isCached() {
 			self.cachedWhere(f)
 		} else {
 			self.uncachedWhere(f)
 		}
-		ret self
+		ret *self
 	}
 
 	// Orders data by result data of f.
 	// Orders by ascending.
-	fn OrderBy[E: comparable](self, f: fn(T): E): Query[T] {
+	fn OrderBy[E: comparable](*self, f: fn(T): E): Query[T] {
 		if !self.isCached() {
 			self.Cache()
 		}
@@ -252,7 +252,7 @@ impl Query {
 
 	// Orders data by result data of f.
 	// Orders by descending.
-	fn OrderByDesc[E: comparable](self, f: fn(T): E): Query[T] {
+	fn OrderByDesc[E: comparable](*self, f: fn(T): E): Query[T] {
 		if !self.isCached() {
 			self.Cache()
 		}
@@ -269,7 +269,7 @@ impl Query {
 		ret self
 	}
 
-	fn GroupBy[E: comparable](self, f: fn(T): E): GroupByQuery[E, T] {
+	fn GroupBy[E: comparable](*self, f: fn(T): E): GroupByQuery[E, T] {
 		if !self.isCached() {
 			self.Cache()
 		}
@@ -286,18 +286,18 @@ impl Query {
 	}
 
 	// Reverses data.
-	fn Reverse(self): Query[T] {
+	fn Reverse(*self): Query[T] {
 		if !self.isCached() {
 			self.Cache()
 		}
 
 		slices::Reverse(self.cache)
-		ret self
+		ret *self
 	}
 
 	// Returns query result as slice.
 	// Unlocks the read-lock.
-	fn Unwrap(self): []T {
+	fn Unwrap(*self): []T {
 		if !self.isCached() {
 			self.Cache()
 		}
@@ -308,7 +308,7 @@ impl Query {
 	// Final stage of the Query with no result.
 	// Returns nothing.
 	// Unlocks the read-lock.
-	fn Final(self) {
+	fn Final(*self) {
 		self.readUnlock()
 	}
 }
@@ -333,12 +333,12 @@ struct GroupByQuery[E: comparable, T] {
 
 impl GroupByQuery {
 	// Returns number of groups.
-	fn Len(self): int {
+	fn Len(*self): int {
 		ret len(self.groups)
 	}
 
 	// Returns maximum value by result of f.
-	fn Max[N: numeric](self, f: fn(T): N): map[E]N {
+	fn Max[N: numeric](*self, f: fn(T): N): map[E]N {
 		mut max := map[E]N{}
 		for e, g in self.groups {
 			max[e] = groupMax(g, f)
@@ -347,7 +347,7 @@ impl GroupByQuery {
 	}
 
 	// Returns minimum value by result of f.
-	fn Min[N: numeric](self, f: fn(T): N): map[E]N {
+	fn Min[N: numeric](*self, f: fn(T): N): map[E]N {
 		mut min := map[E]N{}
 		for e, g in self.groups {
 			min[e] = groupMin(g, f)
@@ -357,7 +357,7 @@ impl GroupByQuery {
 
 	// Returns total value of the results of f.
 	// The start value is zero.
-	fn Sum[N: numeric](self, f: fn(T): N): map[E]N {
+	fn Sum[N: numeric](*self, f: fn(T): N): map[E]N {
 		mut t := map[E]N{}
 		for e, g in self.groups {
 			t[e] = groupSum(g, f)
@@ -368,7 +368,7 @@ impl GroupByQuery {
 	// Returns average value of the results of f.
 	// The start value is zero to sum.
 	// Divides total value by length of the group.
-	fn Avg[N: numeric](self, f: fn(T): N): map[E]N {
+	fn Avg[N: numeric](*self, f: fn(T): N): map[E]N {
 		mut t := map[E]N{}
 		for e, g in self.groups {
 			t[e] = groupAvg(g, f)
@@ -377,7 +377,7 @@ impl GroupByQuery {
 	}
 
 	// Maps group data to result of f.
-	fn Map[V](self, f: fn(Group[T]): V): map[E]V {
+	fn Map[V](*self, f: fn(Group[T]): V): map[E]V {
 		mut groups := map[E]V{}
 		for (mut e, mut g) in self.groups {
 			groups[e] = f(Group[T]{group: g})
@@ -386,17 +386,17 @@ impl GroupByQuery {
 	}
 
 	// Filters groups by result of f.
-	fn Having(self, f: fn(Group[T]): bool): GroupByQuery[E, T] {
+	fn Having(*self, f: fn(Group[T]): bool): GroupByQuery[E, T] {
 		for (mut e, mut g) in self.groups {
 			if !f(Group[T]{group: g}) {
 				delete(self.groups, e)
 			}
 		}
-		ret self
+		ret *self
 	}
 
 	// Returns query result as map.
-	fn Unwrap(self): map[E][]T {
+	fn Unwrap(*self): map[E][]T {
 		ret self.groups
 	}
 }
@@ -414,30 +414,30 @@ struct Group[T] {
 
 impl Group {
 	// Returns number of values in the group.
-	fn Len(self): int {
+	fn Len(*self): int {
 		ret len(self.group)
 	}
 
 	// Returns maximum value by result of f.
-	fn Max[N: numeric](self, f: fn(T): N): (r: N) {
+	fn Max[N: numeric](*self, f: fn(T): N): (r: N) {
 		ret groupMax(self.group, f)
 	}
 
 	// Returns minimum value by result of f.
-	fn Min[N: numeric](self, f: fn(T): N): (r: N) {
+	fn Min[N: numeric](*self, f: fn(T): N): (r: N) {
 		ret groupMin(self.group, f)
 	}
 
 	// Returns total value of the results of f.
 	// The start value is zero.
-	fn Sum[N: numeric](self, f: fn(T): N): (r: N) {
+	fn Sum[N: numeric](*self, f: fn(T): N): (r: N) {
 		ret groupSum(self.group, f)
 	}
 
 	// Returns average value of the results of f.
 	// The start value is zero to sum.
 	// Divides total value by length of the group.
-	fn Avg[N: numeric](self, f: fn(T): N): (r: N) {
+	fn Avg[N: numeric](*self, f: fn(T): N): (r: N) {
 		ret groupAvg(self.group, f)
 	}
 }

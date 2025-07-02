@@ -84,7 +84,7 @@ impl Collection {
 				break
 			}
 			let mut v: T
-			json::Decode(token, v) else { error(error) }
+			json::Decode(token, &v) else { error(error) }
 			f(v)
 		}
 	}
@@ -104,7 +104,7 @@ impl Collection {
 				break
 			}
 			let mut v: T
-			json::Decode(token, v) else { error(error) }
+			json::Decode(token, &v) else { error(error) }
 			if !f(v) {
 				break
 			}
@@ -144,7 +144,7 @@ impl Collection {
 				break
 			}
 			let mut v: T
-			json::Decode(token, v) else { error(error) }
+			json::Decode(token, &v) else { error(error) }
 			v = f(v)
 			bytes := json::Encode(v) else { error(error) }
 			data = append(data, bytes...)
@@ -159,7 +159,7 @@ impl Collection {
 
 	// Updates data by f.
 	// The function f must filter data if needed and update the mutable reference.
-	fn Update(mut &self, f: fn(mut &t: T))! {
+	fn Update(mut &self, f: fn(mut &t: *T))! {
 		self.isOpen(_WRITE, "Collection.Update: database connection is closed")
 		defer { self.db.writeUnlock() }
 
@@ -172,8 +172,8 @@ impl Collection {
 				break
 			}
 			let mut v: T
-			json::Decode(token, v) else { error(error) }
-			f(v)
+			json::Decode(token, &v) else { error(error) }
+			f(&v)
 			bytes := json::Encode(v) else { error(error) }
 			data = append(data, bytes...)
 			data = append(data, _EOF) // Add trailing zero byte to EOF for the value.
@@ -199,7 +199,7 @@ impl Collection {
 				break
 			}
 			let mut v: T
-			json::Decode(token, v) else { error(error) }
+			json::Decode(token, &v) else { error(error) }
 			if !f(v) {
 				data = append(data, token...)
 				data = append(data, _EOF) // Add trailing zero byte to EOF for the value.

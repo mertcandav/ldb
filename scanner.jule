@@ -18,7 +18,7 @@ impl scanner {
 		ret scanner{data: data, i: 0}
 	}
 
-	fn scan(mut self): []byte {
+	fn scan(mut *self): []byte {
 		i := bytes::IndexByte(self.data[self.i:], _EOF)
 		if i == -1 {
 			panic("ldb: corrupted database")
