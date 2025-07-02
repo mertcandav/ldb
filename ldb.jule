@@ -63,9 +63,9 @@ impl LDB {
 
 		// Collection is not cached, so it is not connected to database.
 		// Read it from the non-volatile memory, create it if it is not exist.
-		mut collection := readCollection[T](self, name) else { error(error) }
+		mut collection := readCollection[T](self, name)?
 		if collection == nil {
-			collection = createCollection[T](self, name) else { error(error) }
+			collection = createCollection[T](self, name)?
 		}
 
 		// Add collection instance to the cache and return.
@@ -94,7 +94,7 @@ impl LDB {
 				panic("LDB.DeleteCollection: collection is connected to database actively: \"" + name + "\"")
 			}
 		}
-		dropCollection(self.file, name) else { error(error) }
+		dropCollection(self.file, name)?
 	}
 
 	// Removes all collections from the database.
@@ -111,7 +111,7 @@ impl LDB {
 		if len(self.cache) > 0 {
 			panic("LDB.ClearCollection: at least one collection is connected to database actively")
 		}
-		clearDatabase(self.file) else { error(error) }
+		clearDatabase(self.file)?
 	}
 
 	// Returns names of collections.
@@ -123,7 +123,7 @@ impl LDB {
 			panic("LDB.Collections: database connection is closed")
 		}
 
-		ret readCollections(self.file) else { error(error) }
+		ret readCollections(self.file)?
 	}
 
 	// Closes the database connection.
@@ -141,6 +141,6 @@ impl LDB {
 // Opens new LDB by path.
 // If database is not exist, will be created.
 fn Open(path: str)!: &LDB {
-	mut f := os::OpenFile(path, os::O_RDWR|os::O_CREATE, 0666) else { error(error) }
+	mut f := os::OpenFile(path, os::O_RDWR|os::O_CREATE, 0666)?
 	ret &LDB{file: f}
 }

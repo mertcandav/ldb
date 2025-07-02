@@ -49,7 +49,7 @@ impl Collection {
 	// Returns collection data from the non-volatile memory.
 	fn readData(&self)!: []byte {
 		if self.cache == nil {
-			self.cache = readCollectionData(self.db.file, self.offs, self.len) else { error(error) }
+			self.cache = readCollectionData(self.db.file, self.offs, self.len)?
 		}
 		ret self.cache
 	}
@@ -58,7 +58,7 @@ impl Collection {
 	fn Len(&self)!: (n: int) {
 		self.isOpen(_READ, "Collection.Len: database connection is closed")
 
-		mut data := self.readData() else { error(error) }
+		mut data := self.readData()?
 		self.db.readUnlock()
 
 		for _, b in data {
@@ -74,7 +74,7 @@ impl Collection {
 	fn Iter(mut &self, f: fn(mut T))! {
 		self.isOpen(_READ, "Collection.Iter: database connection is closed")
 
-		mut data := self.readData() else { error(error) }
+		mut data := self.readData()?
 		self.db.readUnlock()
 
 		mut scan := scanner.new(data)
@@ -84,7 +84,7 @@ impl Collection {
 				break
 			}
 			let mut v: T
-			json::Decode(token, &v) else { error(error) }
+			json::Decode(token, &v)?
 			f(v)
 		}
 	}
@@ -94,7 +94,7 @@ impl Collection {
 	fn Iter2(mut &self, f: fn(mut T): bool)! {
 		self.isOpen(_READ, "Collection.Iter: database connection is closed")
 
-		mut data := self.readData() else { error(error) }
+		mut data := self.readData()?
 		self.db.readUnlock()
 
 		mut scan := scanner.new(data)
@@ -104,7 +104,7 @@ impl Collection {
 				break
 			}
 			let mut v: T
-			json::Decode(token, &v) else { error(error) }
+			json::Decode(token, &v)?
 			if !f(v) {
 				break
 			}
@@ -116,16 +116,16 @@ impl Collection {
 		self.isOpen(_WRITE, "Collection.Append: database connection is closed")
 		defer { self.db.writeUnlock() }
 
-		mut data := self.readData() else { error(error) }
+		mut data := self.readData()?
 		data = data[:len(data)-1] // remove trailing EOF byte
 		for _, v in values {
-			bytes := json::Encode(v) else { error(error) }
+			bytes := json::Encode(v)?
 			data = append(data, bytes...)
 			data = append(data, _EOF) // Add trailing zero byte to EOF for the value.
 		}
 		data = append(data, _EOF) // Add trailing EOF zero byte for the data.
 
-		writeCollection(self, data) else { error(error) }
+		writeCollection(self, data)?
 		self.len = i64(len(data))
 		self.cache = data
 	}
@@ -135,7 +135,7 @@ impl Collection {
 		self.isOpen(_WRITE, "Collection.Map: database connection is closed")
 		defer { self.db.writeUnlock() }
 
-		mut data := self.readData() else { error(error) }
+		mut data := self.readData()?
 		mut scan := scanner.new(data)
 		data = make([]byte, 0)
 		for {
@@ -144,15 +144,15 @@ impl Collection {
 				break
 			}
 			let mut v: T
-			json::Decode(token, &v) else { error(error) }
+			json::Decode(token, &v)?
 			v = f(v)
-			bytes := json::Encode(v) else { error(error) }
+			bytes := json::Encode(v)?
 			data = append(data, bytes...)
 			data = append(data, _EOF) // Add trailing zero byte to EOF for the value.
 		}
 		data = append(data, _EOF) // Add trailing EOF zero byte for the data.
 
-		writeCollection(self, data) else { error(error) }
+		writeCollection(self, data)?
 		self.len = i64(len(data))
 		self.cache = data
 	}
@@ -163,7 +163,7 @@ impl Collection {
 		self.isOpen(_WRITE, "Collection.Update: database connection is closed")
 		defer { self.db.writeUnlock() }
 
-		mut data := self.readData() else { error(error) }
+		mut data := self.readData()?
 		mut scan := scanner.new(data)
 		data = make([]byte, 0)
 		for {
@@ -172,15 +172,15 @@ impl Collection {
 				break
 			}
 			let mut v: T
-			json::Decode(token, &v) else { error(error) }
+			json::Decode(token, &v)?
 			f(&v)
-			bytes := json::Encode(v) else { error(error) }
+			bytes := json::Encode(v)?
 			data = append(data, bytes...)
 			data = append(data, _EOF) // Add trailing zero byte to EOF for the value.
 		}
 		data = append(data, _EOF) // Add trailing EOF zero byte for the data.
 
-		writeCollection(self, data) else { error(error) }
+		writeCollection(self, data)?
 		self.len = i64(len(data))
 		self.cache = data
 	}
@@ -190,7 +190,7 @@ impl Collection {
 		self.isOpen(_WRITE, "Collection.Delete: database connection is closed")
 		defer { self.db.writeUnlock() }
 
-		mut data := self.readData() else { error(error) }
+		mut data := self.readData()?
 		mut scan := scanner.new(data)
 		data = make([]byte, 0)
 		for {
@@ -199,7 +199,7 @@ impl Collection {
 				break
 			}
 			let mut v: T
-			json::Decode(token, &v) else { error(error) }
+			json::Decode(token, &v)?
 			if !f(v) {
 				data = append(data, token...)
 				data = append(data, _EOF) // Add trailing zero byte to EOF for the value.
@@ -207,7 +207,7 @@ impl Collection {
 		}
 		data = append(data, _EOF) // Add trailing EOF zero byte for the data.
 
-		writeCollection(self, data) else { error(error) }
+		writeCollection(self, data)?
 		self.len = i64(len(data))
 		self.cache = data
 	}
