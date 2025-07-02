@@ -2,32 +2,32 @@
 
 [fn Open\(path: str\)\!: &amp;LDB](#open)\
 [struct Query](#query)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Cache\(self\): Query\[T\]](#cache)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Sum\[E: numeric\]\(self, f: fn\(T\): E\): \(r: E\)](#sum)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Count\(self, f: fn\(T\): bool\): \(n: int\)](#count)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Contains\(self, f: fn\(T\): bool\): \(r: bool\)](#contains)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Where\(self, f: fn\(T\): bool\): Query\[T\]](#where)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn OrderBy\[E: comparable\]\(self, f: fn\(T\): E\): Query\[T\]](#orderby)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn OrderByDesc\[E: comparable\]\(self, f: fn\(T\): E\): Query\[T\]](#orderbydesc)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn GroupBy\[E: comparable\]\(self, f: fn\(T\): E\): GroupByQuery\[E, T\]](#groupby)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Reverse\(self\): Query\[T\]](#reverse)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Unwrap\(self\): \[\]T](#unwrap)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Final\(self\)](#final)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Cache\(\*self\): Query\[T\]](#cache)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Sum\[E: numeric\]\(\*self, f: fn\(T\): E\): \(r: E\)](#sum)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Count\(\*self, f: fn\(T\): bool\): \(n: int\)](#count)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Contains\(\*self, f: fn\(T\): bool\): \(r: bool\)](#contains)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Where\(\*self, f: fn\(T\): bool\): Query\[T\]](#where)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn OrderBy\[E: comparable\]\(\*self, f: fn\(T\): E\): Query\[T\]](#orderby)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn OrderByDesc\[E: comparable\]\(\*self, f: fn\(T\): E\): Query\[T\]](#orderbydesc)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn GroupBy\[E: comparable\]\(\*self, f: fn\(T\): E\): GroupByQuery\[E, T\]](#groupby)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Reverse\(\*self\): Query\[T\]](#reverse)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Unwrap\(\*self\): \[\]T](#unwrap)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Final\(\*self\)](#final)\
 [struct GroupByQuery](#groupbyquery)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Len\(self\): int](#len)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Max\[N: numeric\]\(self, f: fn\(T\): N\): map\[E\]N](#max)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Min\[N: numeric\]\(self, f: fn\(T\): N\): map\[E\]N](#min)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Sum\[N: numeric\]\(self, f: fn\(T\): N\): map\[E\]N](#sum-1)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Avg\[N: numeric\]\(self, f: fn\(T\): N\): map\[E\]N](#avg)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Map\[V\]\(self, f: fn\(Group\[T\]\): V\): map\[E\]V](#map)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Having\(self, f: fn\(Group\[T\]\): bool\): GroupByQuery\[E, T\]](#having)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Unwrap\(self\): map\[E\]\[\]T](#unwrap-1)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Len\(\*self\): int](#len)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Max\[N: numeric\]\(\*self, f: fn\(T\): N\): map\[E\]N](#max)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Min\[N: numeric\]\(\*self, f: fn\(T\): N\): map\[E\]N](#min)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Sum\[N: numeric\]\(\*self, f: fn\(T\): N\): map\[E\]N](#sum-1)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Avg\[N: numeric\]\(\*self, f: fn\(T\): N\): map\[E\]N](#avg)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Map\[V\]\(\*self, f: fn\(Group\[T\]\): V\): map\[E\]V](#map)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Having\(\*self, f: fn\(Group\[T\]\): bool\): GroupByQuery\[E, T\]](#having)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Unwrap\(\*self\): map\[E\]\[\]T](#unwrap-1)\
 [struct Group](#group)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Len\(self\): int](#len-1)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Max\[N: numeric\]\(self, f: fn\(T\): N\): \(r: N\)](#max-1)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Min\[N: numeric\]\(self, f: fn\(T\): N\): \(r: N\)](#min-1)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Sum\[N: numeric\]\(self, f: fn\(T\): N\): \(r: N\)](#sum-2)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Avg\[N: numeric\]\(self, f: fn\(T\): N\): \(r: N\)](#avg-1)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Len\(\*self\): int](#len-1)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Max\[N: numeric\]\(\*self, f: fn\(T\): N\): \(r: N\)](#max-1)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Min\[N: numeric\]\(\*self, f: fn\(T\): N\): \(r: N\)](#min-1)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Sum\[N: numeric\]\(\*self, f: fn\(T\): N\): \(r: N\)](#sum-2)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Avg\[N: numeric\]\(\*self, f: fn\(T\): N\): \(r: N\)](#avg-1)\
 [struct LDB](#ldb)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn IsOpen\(&amp;self\): bool](#isopen)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn GetCollection\[T\]\(mut &amp;self, name: str\)\!: &amp;Collection\[T\]](#getcollection)\
@@ -42,7 +42,7 @@
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Iter2\(mut &amp;self, f: fn\(mut T\): bool\)\!](#iter2)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Append\(mut &amp;self, mut values: \.\.\.T\)\!](#append)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Map\(mut &amp;self, f: fn\(T\): T\)\!](#map-1)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Update\(mut &amp;self, f: fn\(mut &amp;t: T\)\)\!](#update)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Update\(mut &amp;self, f: fn\(mut &amp;t: \*T\)\)\!](#update)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Delete\(mut &amp;self, f: fn\(T\): bool\)\!](#delete)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn ClearCache\(mut &amp;self\)](#clearcache)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Query\(mut &amp;self\): Query\[T\]](#query-1)\
@@ -79,7 +79,7 @@ collection.Query().
 
 ### Cache
 ```jule
-fn Cache(self): Query[T]
+fn Cache(*self): Query[T]
 ```
 Caches data and switches to it\. Query will drop the collection data and use cache for subsequent queries\. It may increase performance of your query, but overuse may cause high memory usage\. Query will cache the data automatically, if needed\. Mostly, this function should not be invoked manually\.
 
@@ -87,61 +87,61 @@ Since caching drops the collection data, trying to cache already cached query in
 
 ### Sum
 ```jule
-fn Sum[E: numeric](self, f: fn(T): E): (r: E)
+fn Sum[E: numeric](*self, f: fn(T): E): (r: E)
 ```
 Returns total value of the results of f\. The start value is zero\. Unlocks the read\-lock\.
 
 ### Count
 ```jule
-fn Count(self, f: fn(T): bool): (n: int)
+fn Count(*self, f: fn(T): bool): (n: int)
 ```
 Counts values by condition\. To count a value, f must report true for it\. Unlocks the read\-lock\.
 
 ### Contains
 ```jule
-fn Contains(self, f: fn(T): bool): (r: bool)
+fn Contains(*self, f: fn(T): bool): (r: bool)
 ```
 Reports whether data includes at least one value reported true by f\. Unlocks the read\-lock\.
 
 ### Where
 ```jule
-fn Where(self, f: fn(T): bool): Query[T]
+fn Where(*self, f: fn(T): bool): Query[T]
 ```
 Filters data by result of f\.
 
 ### OrderBy
 ```jule
-fn OrderBy[E: comparable](self, f: fn(T): E): Query[T]
+fn OrderBy[E: comparable](*self, f: fn(T): E): Query[T]
 ```
 Orders data by result data of f\. Orders by ascending\.
 
 ### OrderByDesc
 ```jule
-fn OrderByDesc[E: comparable](self, f: fn(T): E): Query[T]
+fn OrderByDesc[E: comparable](*self, f: fn(T): E): Query[T]
 ```
 Orders data by result data of f\. Orders by descending\.
 
 ### GroupBy
 ```jule
-fn GroupBy[E: comparable](self, f: fn(T): E): GroupByQuery[E, T]
+fn GroupBy[E: comparable](*self, f: fn(T): E): GroupByQuery[E, T]
 ```
 
 
 ### Reverse
 ```jule
-fn Reverse(self): Query[T]
+fn Reverse(*self): Query[T]
 ```
 Reverses data\.
 
 ### Unwrap
 ```jule
-fn Unwrap(self): []T
+fn Unwrap(*self): []T
 ```
 Returns query result as slice\. Unlocks the read\-lock\.
 
 ### Final
 ```jule
-fn Final(self)
+fn Final(*self)
 ```
 Final stage of the Query with no result\. Returns nothing\. Unlocks the read\-lock\.
 
@@ -168,49 +168,49 @@ collection.Query().
 
 ### Len
 ```jule
-fn Len(self): int
+fn Len(*self): int
 ```
 Returns number of groups\.
 
 ### Max
 ```jule
-fn Max[N: numeric](self, f: fn(T): N): map[E]N
+fn Max[N: numeric](*self, f: fn(T): N): map[E]N
 ```
 Returns maximum value by result of f\.
 
 ### Min
 ```jule
-fn Min[N: numeric](self, f: fn(T): N): map[E]N
+fn Min[N: numeric](*self, f: fn(T): N): map[E]N
 ```
 Returns minimum value by result of f\.
 
 ### Sum
 ```jule
-fn Sum[N: numeric](self, f: fn(T): N): map[E]N
+fn Sum[N: numeric](*self, f: fn(T): N): map[E]N
 ```
 Returns total value of the results of f\. The start value is zero\.
 
 ### Avg
 ```jule
-fn Avg[N: numeric](self, f: fn(T): N): map[E]N
+fn Avg[N: numeric](*self, f: fn(T): N): map[E]N
 ```
 Returns average value of the results of f\. The start value is zero to sum\. Divides total value by length of the group\.
 
 ### Map
 ```jule
-fn Map[V](self, f: fn(Group[T]): V): map[E]V
+fn Map[V](*self, f: fn(Group[T]): V): map[E]V
 ```
 Maps group data to result of f\.
 
 ### Having
 ```jule
-fn Having(self, f: fn(Group[T]): bool): GroupByQuery[E, T]
+fn Having(*self, f: fn(Group[T]): bool): GroupByQuery[E, T]
 ```
 Filters groups by result of f\.
 
 ### Unwrap
 ```jule
-fn Unwrap(self): map[E][]T
+fn Unwrap(*self): map[E][]T
 ```
 Returns query result as map\.
 
@@ -228,31 +228,31 @@ Intended to in\-query use in GroupByQuery queries\.
 
 ### Len
 ```jule
-fn Len(self): int
+fn Len(*self): int
 ```
 Returns number of values in the group\.
 
 ### Max
 ```jule
-fn Max[N: numeric](self, f: fn(T): N): (r: N)
+fn Max[N: numeric](*self, f: fn(T): N): (r: N)
 ```
 Returns maximum value by result of f\.
 
 ### Min
 ```jule
-fn Min[N: numeric](self, f: fn(T): N): (r: N)
+fn Min[N: numeric](*self, f: fn(T): N): (r: N)
 ```
 Returns minimum value by result of f\.
 
 ### Sum
 ```jule
-fn Sum[N: numeric](self, f: fn(T): N): (r: N)
+fn Sum[N: numeric](*self, f: fn(T): N): (r: N)
 ```
 Returns total value of the results of f\. The start value is zero\.
 
 ### Avg
 ```jule
-fn Avg[N: numeric](self, f: fn(T): N): (r: N)
+fn Avg[N: numeric](*self, f: fn(T): N): (r: N)
 ```
 Returns average value of the results of f\. The start value is zero to sum\. Divides total value by length of the group\.
 
@@ -346,7 +346,7 @@ Maps data to result of f\.
 
 ### Update
 ```jule
-fn Update(mut &self, f: fn(mut &t: T))!
+fn Update(mut &self, f: fn(mut &t: *T))!
 ```
 Updates data by f\. The function f must filter data if needed and update the mutable reference\.
 
