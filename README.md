@@ -1,6 +1,6 @@
 # LDB: Local Database
 
-LDB is a local, easy-to-use, thread-safe database for [Jule](https://github.com/julelang/jule).
+LDB is a local, easy-to-use, concurrency-safe database for [Jule](https://github.com/julelang/jule).
 
 It stores data as collections.\
 Each collection has its own name for lookup.\
@@ -8,7 +8,7 @@ The data of the collections is basically a JSON array with query support.
 
 Key features:
 - Written in pure Jule
-- Thread-safe
+- Concurrency-safe
 - Works on local and non-volatile memory
 - Optimized for performance and memory efficiency balance
 - Can store any JSON value, document oriented
@@ -17,7 +17,7 @@ Key features:
 ## Quick Start Example
 
 ```rust
-use "ldb"
+use "mymodule/ldb"
 use "std/fmt"
 
 struct User {
@@ -25,13 +25,12 @@ struct User {
 	Age:  int
 }
 
-fn main() {
+async fn main() {
 	// Open database, it will be created if not exist.
 	mut db := Open("test.db")!
-	defer { db.Close() }
 
 	// Get users collection, it will be created if not exist.
-	mut users := db.GetCollection[User]("users")!
+	mut users := db.GetCollection[User]("users").await!
 
 	// Add sample data.
 	users.Append(
@@ -43,14 +42,16 @@ fn main() {
 		{"Fizz", 53},
 		{"Buzz", 36},
 		{"ABC", 36},
-		{"XYZ", 18})!
+		{"XYZ", 18}).await!
 
 	// Query for user count per age.
 	// Result is: map[age]usercount
-	userCounts := users.Query().
+	userCounts := users.Query().await.
 		Where(fn|user| user.Age > 0).
 		GroupBy(fn|user| user.Age).
 		Map(fn|group| group.Len())
+
+	db.Close().await
 
 	fmt::Println("user count per age: ", userCounts)
 }
@@ -60,24 +61,24 @@ fn main() {
 
 ```rust
 // SELECT * FROM users
-users.Query().Unwrap()
+users.Query().await.Unwrap()
 ```
 ```rust
 // SELECT * FROM users
 // WHERE age > 25
-users.Query().
+users.Query().await.
 	Where(fn|u| u.Age > 25).
 	Unwrap()
 ```
 ```rust
 // SELECT SUM(Price) FROM Products;
-products.Query().
+products.Query().await.
   Sum(fn|p| p.Price)
 ```
 ```rust
 // SELECT * FROM Products
 // ORDER BY Price DESC;
-products.Query().
+products.Query().await.
   OrderByDesc(fn|p| p.Price).
   Unwrap()
 ```
@@ -91,11 +92,11 @@ customers.Append({
 	City: "Stavanger",
 	PostalCode: "4006",
 	Country: "Norway",
-})!
+}).await!
 ```
 ```rust
 // DELETE FROM Customers WHERE Name = 'Alfreds Futterkiste';
-customers.Delete(fn|c| c.Name == "Alfreds Futterkiste")!
+customers.Delete(fn|c| c.Name == "Alfreds Futterkiste").await!
 ```
 ```rust
 // UPDATE Customers
@@ -106,7 +107,7 @@ customers.Update(fn|mut c| {
 		c.ContactName = "Alfred Schmidt"
 		c.City = "Frankfurt"
 	}
-})!
+}).await!
 ```
 
 ## License

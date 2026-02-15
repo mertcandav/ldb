@@ -23,9 +23,9 @@ struct LDB {
 }
 
 impl LDB {
-	fn readLock(*self) { self.mtx.RLock() }
+	async fn readLock(*self) { self.mtx.RLock().await }
 	fn readUnlock(*self) { self.mtx.RUnlock() }
-	fn writeLock(*self) { self.mtx.Lock() }
+	async fn writeLock(*self) { self.mtx.Lock().await }
 	fn writeUnlock(*self) { self.mtx.Unlock() }
 
 	// Reports whether the database connection is open.
@@ -36,8 +36,8 @@ impl LDB {
 	// Returns collection from the database.
 	// If collection is not exist in the specified name, it will be created.
 	// Type T must be supported by the standard JSON package.
-	fn GetCollection[T](mut &self, name: str)!: &Collection[T] {
-		self.readLock()
+	async fn GetCollection[T](mut &self, name: str)!: &Collection[T] {
+		self.readLock().await
 		defer { self.readUnlock() }
 
 		if !self.IsOpen() {
@@ -63,9 +63,9 @@ impl LDB {
 
 		// Collection is not cached, so it is not connected to database.
 		// Read it from the non-volatile memory, create it if it is not exist.
-		mut collection := readCollection[T](self, name)?
+		mut collection := readCollection[T](self, name).await?
 		if collection == nil {
-			collection = createCollection[T](self, name)?
+			collection = createCollection[T](self, name).await?
 		}
 
 		// Add collection instance to the cache and return.
@@ -77,8 +77,8 @@ impl LDB {
 	// If collection is not exist in the specified name, does nothing.
 	// If any collection linked to the name currently, it will fail.
 	// Close the collection connection before drop it.
-	fn DeleteCollection(mut &self, name: str)! {
-		self.writeLock()
+	async fn DeleteCollection(mut &self, name: str)! {
+		self.writeLock().await
 		defer { self.writeUnlock() }
 
 		if !self.IsOpen() {
@@ -94,14 +94,14 @@ impl LDB {
 				panic("LDB.DeleteCollection: collection is connected to database actively: \"" + name + "\"")
 			}
 		}
-		dropCollection(self.file, name)?
+		dropCollection(self.file, name).await?
 	}
 
 	// Removes all collections from the database.
 	// If any collection linked currently, it will fail.
 	// Close the collection connections before drop them.
-	fn ClearCollections(mut &self)! {
-		self.writeLock()
+	async fn ClearCollections(mut &self)! {
+		self.writeLock().await
 		defer { self.writeUnlock() }
 
 		if !self.IsOpen() {
@@ -111,28 +111,28 @@ impl LDB {
 		if len(self.cache) > 0 {
 			panic("LDB.ClearCollection: at least one collection is connected to database actively")
 		}
-		clearDatabase(self.file)?
+		clearDatabase(self.file).await?
 	}
 
 	// Returns names of collections.
-	fn Collections(&self)!: []str {
-		self.readLock()
+	async fn Collections(&self)!: []str {
+		self.readLock().await
 		defer { self.readUnlock() }
 
 		if !self.IsOpen() {
 			panic("LDB.Collections: database connection is closed")
 		}
 
-		ret readCollections(self.file)?
+		ret readCollections(self.file).await?
 	}
 
 	// Closes the database connection.
 	// If connection is already closed, it does nothing.
-	fn Close(&self) {
+	async fn Close(&self) {
 		// Use write-lock to avoid readers and writers, if any.
-		self.writeLock()
+		self.writeLock().await
 		if self.IsOpen() {
-			self.file.Close() else {}
+			self.file.Close().await else {}
 		}
 		self.writeUnlock()
 	}

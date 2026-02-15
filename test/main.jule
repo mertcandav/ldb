@@ -11,14 +11,10 @@ struct User {
 	Age:  int
 }
 
-fn main() {
+async fn main() {
 	mut db := ldb::Open("test.db")!
-	defer {
-		db.Close()
-		os::Remove("test.db")!
-	}
 
-	mut users := db.GetCollection[User]("users")!
+	mut users := db.GetCollection[User]("users").await!
 	users.Append(
 		{"root", 0},
 		{"admin", -1},
@@ -28,37 +24,40 @@ fn main() {
 		{"Fizz", 53},
 		{"Buzz", 36},
 		{"ABC", 36},
-		{"XYZ", 18})!
+		{"XYZ", 18}).await!
 
-	mut n := users.Len()!
+	mut n := users.Len().await!
 	if n != 9 {
 		panic("unexpected length")
 	}
 
-	t := users.Query().
+	t := users.Query().await.
 		Where(fn|user| user.Age > 0).
 		Sum(fn|user| user.Age)
 	fmt::Println("Total of user age: ", t)
 
-	ageRange := users.Query().
+	ageRange := users.Query().await.
 		Where(fn|user| user.Age > 0).
 		GroupBy(fn|user| user.Age).
 		Map(fn|g| g.Len())
 	fmt::Println("user count per age: ", ageRange)
 
-	mut test := db.GetCollection[User]("test")!
-	test.Append(users.Query().Unwrap()...)!
+	mut test := db.GetCollection[User]("test").await!
+	test.Append(users.Query().await.Unwrap()...).await!
 
-	users.Close()
-	test.Close()
+	users.Close().await
+	test.Close().await
 
-	db.DeleteCollection("users")!
-	users = db.GetCollection[User]("users")!
-	n = users.Len()!
+	db.DeleteCollection("users").await!
+	users = db.GetCollection[User]("users").await!
+	n = users.Len().await!
 	if n != 0 {
 		panic("unexpected length after drop")
 	}
-	users.Close()
+	users.Close().await
 
-	db.ClearCollections()!
+	db.ClearCollections().await!
+
+	db.Close().await
+	os::Remove("test.db")!
 }
