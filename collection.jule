@@ -216,8 +216,10 @@ impl Collection {
 	// It may help to reduce memory use.
 	// But triggers caching and reading from non-volatile memory in next CRUD.
 	// Unnecessary use of this method may cause significant performance issues.
-	fn ClearCache(mut &self) {
+	async fn ClearCache(mut &self) {
+		self.db.writeLock().await
 		self.cache = nil
+		self.db.writeUnlock()
 	}
 
 	// Returns ready-to-use query for the collection.
@@ -239,12 +241,13 @@ impl Collection {
 		self.isOpen(_WRITE, "Collection.Close: database connection is closed").await
 
 		delete(self.db.cache, self.name)
-		self.db.writeUnlock()
 
 		self.db = nil
 		self.name = ""
 		self.len = 0
 		self.offs = 0
 		self.cache = nil
+
+		self.db.writeUnlock()
 	}
 }
