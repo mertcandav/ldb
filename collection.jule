@@ -16,6 +16,8 @@ const (
 struct Collection[T] {
 	mut db: &LDB
 
+	mu: sync::Mutex
+
 	name: str
 	offs: i64 // Offset of the data in the database representation.
 	len:  i64 // Length of the collection data.
@@ -218,8 +220,8 @@ impl Collection {
 	// Unnecessary use of this method may cause significant performance issues.
 	async fn ClearCache(mut &self) {
 		self.db.writeLock().await
+		defer { self.db.writeUnlock() }
 		self.cache = nil
-		self.db.writeUnlock()
 	}
 
 	// Returns ready-to-use query for the collection.
@@ -239,15 +241,17 @@ impl Collection {
 	// When a collection closed, all collections will be closed for the same name.
 	async fn Close(mut &self) {
 		self.isOpen(_WRITE, "Collection.Close: database connection is closed").await
+		self.mu.Lock().await
+		defer { self.mu.Unlock() }
 
 		delete(self.db.cache, self.name)
+
+		self.db.writeUnlock()
 
 		self.db = nil
 		self.name = ""
 		self.len = 0
 		self.offs = 0
 		self.cache = nil
-
-		self.db.writeUnlock()
 	}
 }

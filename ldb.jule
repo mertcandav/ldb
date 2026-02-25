@@ -131,10 +131,10 @@ impl LDB {
 	async fn Close(&self) {
 		// Use write-lock to avoid readers and writers, if any.
 		self.writeLock().await
+		defer { self.writeUnlock() }
 		if self.IsOpen() {
 			self.file.Close().await else {}
 		}
-		self.writeUnlock()
 	}
 }
 

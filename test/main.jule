@@ -13,6 +13,11 @@ struct User {
 
 async fn main() {
 	mut db := ldb::Open("test.db")!
+	defer {
+		db.ClearCollections().await!
+		db.Close().await
+		os::Remove("test.db")!
+	}
 
 	mut users := db.GetCollection[User]("users").await!
 	users.Append(
@@ -55,9 +60,4 @@ async fn main() {
 		panic("unexpected length after drop")
 	}
 	users.Close().await
-
-	db.ClearCollections().await!
-
-	db.Close().await
-	os::Remove("test.db")!
 }

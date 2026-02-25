@@ -28,6 +28,7 @@ struct User {
 async fn main() {
 	// Open database, it will be created if not exist.
 	mut db := Open("test.db")!
+	defer { db.Close().await }
 
 	// Get users collection, it will be created if not exist.
 	mut users := db.GetCollection[User]("users").await!
@@ -50,8 +51,6 @@ async fn main() {
 		Where(fn|user| user.Age > 0).
 		GroupBy(fn|user| user.Age).
 		Map(fn|group| group.Len())
-
-	db.Close().await
 
 	fmt::Println("user count per age: ", userCounts)
 }
