@@ -1,7 +1,26 @@
 ## Index
 
 [fn Open\(path: str\)\!: &amp;LDB](#open)\
-[struct Query](#query)\
+[struct Collection\[T\]](#collection)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Name\(&amp;self\): str](#name)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Len\(&amp;self\)\!: \(n: int\)](#len)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Iter\(mut &amp;self, f: fn\(mut T\)\)\!](#iter)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Iter2\(mut &amp;self, f: fn\(mut T\): bool\)\!](#iter2)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Append\(mut &amp;self, mut values: \.\.\.T\)\!](#append)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Map\(mut &amp;self, f: fn\(T\): T\)\!](#map)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Update\(mut &amp;self, f: fn\(mut &amp;t: \*T\)\)\!](#update)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Delete\(mut &amp;self, f: fn\(T\): bool\)\!](#delete)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn ClearCache\(mut &amp;self\)](#clearcache)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Query\(mut &amp;self\): Query\[T\]](#query)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Close\(mut &amp;self\)](#close)\
+[struct LDB](#ldb)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn IsOpen\(&amp;self\): bool](#isopen)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn GetCollection\[T\]\(mut &amp;self, name: str\)\!: &amp;Collection\[T\]](#getcollection)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn DeleteCollection\(mut &amp;self, name: str\)\!](#deletecollection)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn ClearCollections\(mut &amp;self\)\!](#clearcollections)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Collections\(&amp;self\)\!: \[\]str](#collections)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Close\(&amp;self\)](#close-1)\
+[struct Query\[T\]](#query-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Cache\(\*self\): Query\[T\]](#cache)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Sum\[E: numeric\]\(\*self, f: fn\(T\): E\): \(r: E\)](#sum)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Count\(\*self, f: fn\(T\): bool\): \(n: int\)](#count)\
@@ -13,40 +32,21 @@
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Reverse\(\*self\): Query\[T\]](#reverse)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Unwrap\(\*self\): \[\]T](#unwrap)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Final\(\*self\)](#final)\
-[struct GroupByQuery](#groupbyquery)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Len\(\*self\): int](#len)\
+[struct GroupByQuery\[E: comparable, T\]](#groupbyquery)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Len\(\*self\): int](#len-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Max\[N: numeric\]\(\*self, f: fn\(T\): N\): map\[E\]N](#max)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Min\[N: numeric\]\(\*self, f: fn\(T\): N\): map\[E\]N](#min)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Sum\[N: numeric\]\(\*self, f: fn\(T\): N\): map\[E\]N](#sum-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Avg\[N: numeric\]\(\*self, f: fn\(T\): N\): map\[E\]N](#avg)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Map\[V\]\(\*self, f: fn\(Group\[T\]\): V\): map\[E\]V](#map)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Map\[V\]\(\*self, f: fn\(Group\[T\]\): V\): map\[E\]V](#map-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Having\(\*self, f: fn\(Group\[T\]\): bool\): GroupByQuery\[E, T\]](#having)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Unwrap\(\*self\): map\[E\]\[\]T](#unwrap-1)\
-[struct Group](#group)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Len\(\*self\): int](#len-1)\
+[struct Group\[T\]](#group)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Len\(\*self\): int](#len-2)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Max\[N: numeric\]\(\*self, f: fn\(T\): N\): \(r: N\)](#max-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Min\[N: numeric\]\(\*self, f: fn\(T\): N\): \(r: N\)](#min-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Sum\[N: numeric\]\(\*self, f: fn\(T\): N\): \(r: N\)](#sum-2)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Avg\[N: numeric\]\(\*self, f: fn\(T\): N\): \(r: N\)](#avg-1)\
-[struct LDB](#ldb)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn IsOpen\(&amp;self\): bool](#isopen)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn GetCollection\[T\]\(mut &amp;self, name: str\)\!: &amp;Collection\[T\]](#getcollection)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn DeleteCollection\(mut &amp;self, name: str\)\!](#deletecollection)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn ClearCollections\(mut &amp;self\)\!](#clearcollections)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Collections\(&amp;self\)\!: \[\]str](#collections)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Close\(&amp;self\)](#close)\
-[struct Collection](#collection)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Name\(&amp;self\): str](#name)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Len\(&amp;self\)\!: \(n: int\)](#len-2)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Iter\(mut &amp;self, f: fn\(mut T\)\)\!](#iter)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Iter2\(mut &amp;self, f: fn\(mut T\): bool\)\!](#iter2)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Append\(mut &amp;self, mut values: \.\.\.T\)\!](#append)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Map\(mut &amp;self, f: fn\(T\): T\)\!](#map-1)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Update\(mut &amp;self, f: fn\(mut &amp;t: \*T\)\)\!](#update)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Delete\(mut &amp;self, f: fn\(T\): bool\)\!](#delete)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn ClearCache\(mut &amp;self\)](#clearcache)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Query\(mut &amp;self\): Query\[T\]](#query-1)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Close\(mut &amp;self\)](#close-1)
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Avg\[N: numeric\]\(\*self, f: fn\(T\): N\): \(r: N\)](#avg-1)
 
 
 
@@ -55,6 +55,124 @@
 fn Open(path: str)!: &LDB
 ```
 Opens new LDB by path\. If database is not exist, will be created\.
+
+## Collection
+```jule
+struct Collection[T] {
+	// NOTE: contains filtered hidden or unexported fields
+}
+```
+LDB collection instance\. A Collection instance must not be copied\.
+
+### Name
+```jule
+fn Name(&self): str
+```
+Returns name of the collection\.
+
+### Len
+```jule
+async fn Len(&self)!: (n: int)
+```
+Returns number of records in the collection\.
+
+### Iter
+```jule
+async fn Iter(mut &self, f: fn(mut T))!
+```
+Iterates values of collection\.
+
+### Iter2
+```jule
+async fn Iter2(mut &self, f: fn(mut T): bool)!
+```
+Iterates values of collection\. Breaks iteration when function f returns false\.
+
+### Append
+```jule
+async fn Append(mut &self, mut values: ...T)!
+```
+Appends values to collection\.
+
+### Map
+```jule
+async fn Map(mut &self, f: fn(T): T)!
+```
+Maps data to result of f\.
+
+### Update
+```jule
+async fn Update(mut &self, f: fn(mut &t: *T))!
+```
+Updates data by f\. The function f must filter data if needed and update the mutable reference\.
+
+### Delete
+```jule
+async fn Delete(mut &self, f: fn(T): bool)!
+```
+Filters and removes matched data by f\.
+
+### ClearCache
+```jule
+async fn ClearCache(mut &self)
+```
+Clears internal cache\. It may help to reduce memory use\. But triggers caching and reading from non\-volatile memory in next CRUD\. Unnecessary use of this method may cause significant performance issues\.
+
+### Query
+```jule
+async fn Query(mut &self): Query[T]
+```
+Returns ready\-to\-use query for the collection\. Panics if database\-read fails\. Locks the read\-lock, avoid misuse of Query, otherwise behavior is undefined\.
+
+### Close
+```jule
+async fn Close(mut &self)
+```
+Drops the collection ownership\. When a collection closed, all collections will be closed for the same name\.
+
+## LDB
+```jule
+struct LDB {
+	// NOTE: contains filtered hidden or unexported fields
+}
+```
+Local Database instance\. A LDB instance must not be copied\.
+
+### IsOpen
+```jule
+fn IsOpen(&self): bool
+```
+Reports whether the database connection is open\.
+
+### GetCollection
+```jule
+async fn GetCollection[T](mut &self, name: str)!: &Collection[T]
+```
+Returns collection from the database\. If collection is not exist in the specified name, it will be created\. Type T must be supported by the standard JSON package\.
+
+### DeleteCollection
+```jule
+async fn DeleteCollection(mut &self, name: str)!
+```
+Removes collection from the database\. If collection is not exist in the specified name, does nothing\. If any collection linked to the name currently, it will fail\. Close the collection connection before drop it\.
+
+### ClearCollections
+```jule
+async fn ClearCollections(mut &self)!
+```
+Removes all collections from the database\. If any collection linked currently, it will fail\. Close the collection connections before drop them\.
+
+### Collections
+```jule
+async fn Collections(&self)!: []str
+```
+Returns names of collections\.
+
+### Close
+```jule
+async fn Close(&self)
+```
+Closes the database connection\. If connection is already closed, it does nothing\.
 
 ## Query
 ```jule
@@ -255,121 +373,3 @@ Returns total value of the results of f\. The start value is zero\.
 fn Avg[N: numeric](*self, f: fn(T): N): (r: N)
 ```
 Returns average value of the results of f\. The start value is zero to sum\. Divides total value by length of the group\.
-
-## LDB
-```jule
-struct LDB {
-	// NOTE: contains filtered hidden or unexported fields
-}
-```
-Local Database instance\. A LDB instance must not be copied\.
-
-### IsOpen
-```jule
-fn IsOpen(&self): bool
-```
-Reports whether the database connection is open\.
-
-### GetCollection
-```jule
-fn GetCollection[T](mut &self, name: str)!: &Collection[T]
-```
-Returns collection from the database\. If collection is not exist in the specified name, it will be created\. Type T must be supported by the standard JSON package\.
-
-### DeleteCollection
-```jule
-fn DeleteCollection(mut &self, name: str)!
-```
-Removes collection from the database\. If collection is not exist in the specified name, does nothing\. If any collection linked to the name currently, it will fail\. Close the collection connection before drop it\.
-
-### ClearCollections
-```jule
-fn ClearCollections(mut &self)!
-```
-Removes all collections from the database\. If any collection linked currently, it will fail\. Close the collection connections before drop them\.
-
-### Collections
-```jule
-fn Collections(&self)!: []str
-```
-Returns names of collections\.
-
-### Close
-```jule
-fn Close(&self)
-```
-Closes the database connection\. If connection is already closed, it does nothing\.
-
-## Collection
-```jule
-struct Collection[T] {
-	// NOTE: contains filtered hidden or unexported fields
-}
-```
-LDB collection instance\. A Collection instance must not be copied\.
-
-### Name
-```jule
-fn Name(&self): str
-```
-Returns name of the collection\.
-
-### Len
-```jule
-fn Len(&self)!: (n: int)
-```
-Returns number of records in the collection\.
-
-### Iter
-```jule
-fn Iter(mut &self, f: fn(mut T))!
-```
-Iterates values of collection\.
-
-### Iter2
-```jule
-fn Iter2(mut &self, f: fn(mut T): bool)!
-```
-Iterates values of collection\. Breaks iteration when function f returns false\.
-
-### Append
-```jule
-fn Append(mut &self, mut values: ...T)!
-```
-Appends values to collection\.
-
-### Map
-```jule
-fn Map(mut &self, f: fn(T): T)!
-```
-Maps data to result of f\.
-
-### Update
-```jule
-fn Update(mut &self, f: fn(mut &t: *T))!
-```
-Updates data by f\. The function f must filter data if needed and update the mutable reference\.
-
-### Delete
-```jule
-fn Delete(mut &self, f: fn(T): bool)!
-```
-Filters and removes matched data by f\.
-
-### ClearCache
-```jule
-fn ClearCache(mut &self)
-```
-Clears internal cache\. It may help to reduce memory use\. But triggers caching and reading from non\-volatile memory in next CRUD\. Unnecessary use of this method may cause significant performance issues\.
-
-### Query
-```jule
-fn Query(mut &self): Query[T]
-```
-Returns ready\-to\-use query for the collection\. Panics if database\-read fails\. Locks the read\-lock, avoid misuse of Query, otherwise behavior is undefined\.
-
-### Close
-```jule
-fn Close(mut &self)
-```
-Drops the collection ownership\. When a collection closed, all collections will be closed for the same name\.
