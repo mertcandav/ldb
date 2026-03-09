@@ -32,6 +32,7 @@ async fn main() {
 
 	// Get users collection, it will be created if not exist.
 	mut users := db.GetCollection[User]("users").await!
+	defer { users.Close().await }
 
 	// Add sample data.
 	users.Append(
