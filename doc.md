@@ -1,8 +1,8 @@
 ## Index
 
-[fn Open\(path: str\)\!: &amp;LDB](#open)\
+[fn Open\(path: string\)\!: &amp;LDB](#open)\
 [struct Collection\[T\]](#collection)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Name\(&amp;self\): str](#name)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Name\(&amp;self\): string](#name)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Len\(&amp;self\)\!: \(n: int\)](#len)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Iter\(mut &amp;self, f: fn\(mut T\)\)\!](#iter)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Iter2\(mut &amp;self, f: fn\(mut T\): bool\)\!](#iter2)\
@@ -15,10 +15,10 @@
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Close\(mut &amp;self\)](#close)\
 [struct LDB](#ldb)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn IsOpen\(&amp;self\): bool](#isopen)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn GetCollection\[T\]\(mut &amp;self, name: str\)\!: &amp;Collection\[T\]](#getcollection)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn DeleteCollection\(mut &amp;self, name: str\)\!](#deletecollection)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn GetCollection\[T\]\(mut &amp;self, name: string\)\!: &amp;Collection\[T\]](#getcollection)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn DeleteCollection\(mut &amp;self, name: string\)\!](#deletecollection)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn ClearCollections\(mut &amp;self\)\!](#clearcollections)\
-&nbsp;&nbsp;&nbsp;&nbsp;[fn Collections\(&amp;self\)\!: \[\]str](#collections)\
+&nbsp;&nbsp;&nbsp;&nbsp;[fn Collections\(&amp;self\)\!: \[\]string](#collections)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Close\(&amp;self\)](#close-1)\
 [struct Query\[T\]](#query-1)\
 &nbsp;&nbsp;&nbsp;&nbsp;[fn Cache\(\*self\): Query\[T\]](#cache)\
@@ -52,7 +52,7 @@
 
 ## Open
 ```jule
-fn Open(path: str)!: &LDB
+fn Open(path: string)!: &LDB
 ```
 Opens new LDB by path\. If database is not exist, will be created\.
 
@@ -66,7 +66,7 @@ LDB collection instance\. A Collection instance must not be copied\.
 
 ### Name
 ```jule
-fn Name(&self): str
+fn Name(&self): string
 ```
 Returns name of the collection\.
 
@@ -146,13 +146,13 @@ Reports whether the database connection is open\.
 
 ### GetCollection
 ```jule
-async fn GetCollection[T](mut &self, name: str)!: &Collection[T]
+async fn GetCollection[T](mut &self, name: string)!: &Collection[T]
 ```
 Returns collection from the database\. If collection is not exist in the specified name, it will be created\. Type T must be supported by the standard JSON package\.
 
 ### DeleteCollection
 ```jule
-async fn DeleteCollection(mut &self, name: str)!
+async fn DeleteCollection(mut &self, name: string)!
 ```
 Removes collection from the database\. If collection is not exist in the specified name, does nothing\. If any collection linked to the name currently, it will fail\. Close the collection connection before drop it\.
 
@@ -164,7 +164,7 @@ Removes all collections from the database\. If any collection linked currently, 
 
 ### Collections
 ```jule
-async fn Collections(&self)!: []str
+async fn Collections(&self)!: []string
 ```
 Returns names of collections\.
 
