@@ -18,7 +18,7 @@ struct Collection[T] {
 
 	mu: sync::Mutex
 
-	name: str
+	name: string
 	offs: i64 // Offset of the data in the database representation.
 	len:  i64 // Length of the collection data.
 
@@ -28,13 +28,13 @@ struct Collection[T] {
 
 impl Collection {
 	// Returns name of the collection.
-	fn Name(&self): str {
-		ret self.name
+	fn Name(&self): string {
+		return self.name
 	}
 
 	// Checks the database connection and panics with msg if it is closed.
 	// Locks for the relevant access mode before return.
-	async fn isOpen(&self, access: int, msg: str) {
+	async fn isOpen(&self, access: int, msg: string) {
 		if self.db == nil {
 			panic(msg)
 		}
@@ -53,7 +53,7 @@ impl Collection {
 		if self.cache == nil {
 			self.cache = readCollectionData(self.db.file, self.offs, self.len).await?
 		}
-		ret self.cache
+		return self.cache
 	}
 
 	// Returns number of records in the collection.
@@ -69,7 +69,7 @@ impl Collection {
 			}
 		}
 		n-- // Remove trailing EOF byte of the data.
-		ret
+		return
 	}
 
 	// Iterates values of collection.
@@ -231,9 +231,9 @@ impl Collection {
 		self.isOpen(_READ, "Collection.Query: database connection is closed").await
 
 		mut data := self.readData().await!
-		ret Query[T]{
+		return Query[T]{
 			owner: self,
-			data: data,
+			data:  data,
 		}
 	}
 

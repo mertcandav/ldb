@@ -21,7 +21,7 @@ use "mymodule/ldb"
 use "std/fmt"
 
 struct User {
-	Name: str
+	Name: string
 	Age:  int
 }
 

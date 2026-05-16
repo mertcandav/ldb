@@ -7,7 +7,7 @@ use "std/fmt"
 use "std/os"
 
 struct User {
-	Name: str
+	Name: string
 	Age:  int
 }
 

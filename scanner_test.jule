@@ -5,37 +5,37 @@
 use "std/testing"
 
 struct scannerTest {
-	data:   str
-	tokens: []str
+	data:   string
+	tokens: []string
 }
 
 let scannerTests: []scannerTest = [
 	{
-		data: "\x00\x00",
+		data:   "\x00\x00",
 		tokens: nil,
 	},
 	{
-		data: "foo\x00\x00",
+		data:   "foo\x00\x00",
 		tokens: ["foo"],
 	},
 	{
-		data: "foo\x00bar\x00\x00",
+		data:   "foo\x00bar\x00\x00",
 		tokens: ["foo", "bar"],
 	},
 	{
-		data: "foo\x00bar\x00\x00",
+		data:   "foo\x00bar\x00\x00",
 		tokens: ["foo", "bar"],
 	},
 	{
-		data: "foo\x00bar\x00baz\x00\x00",
+		data:   "foo\x00bar\x00baz\x00\x00",
 		tokens: ["foo", "bar", "baz"],
 	},
 	{
-		data: "foo\x00 \x00\t\x00\x00",
+		data:   "foo\x00 \x00\t\x00\x00",
 		tokens: ["foo", " ", "\t"],
 	},
 	{
-		data: "çşğü\x00√∫æ`~¨≤ß~∂\x00\t\x00\x00",
+		data:   "çşğü\x00√∫æ`~¨≤ß~∂\x00\t\x00\x00",
 		tokens: ["çşğü", "√∫æ`~¨≤ß~∂", "\t"],
 	},
 ]
@@ -57,7 +57,7 @@ Test:
 				continue Test
 			}
 			expected := test.tokens[n-1]
-			if str(token) != expected {
+			if string(token) != expected {
 				t.Errorf("#{} returns unexpected token", i)
 				continue Test
 			}

@@ -36,7 +36,7 @@ struct Query[T] {
 impl Query {
 	// Reports whether the collection data is cached.
 	fn isCached(*self): bool {
-		ret self.data == nil
+		return self.data == nil
 	}
 
 	// Release the read-lock for this query.
@@ -74,14 +74,14 @@ impl Query {
 			}
 		}
 		self.data = nil // switch to cache
-		ret *self
+		return *self
 	}
 
 	fn cachedSum[E: numeric](*self, f: fn(T): E): (r: E) {
 		for _, v in self.cache {
 			r += f(v)
 		}
-		ret
+		return
 	}
 
 	fn uncachedSum[E: numeric](*self, f: fn(T): E): (r: E) {
@@ -97,7 +97,7 @@ impl Query {
 			}
 			r += f(v)
 		}
-		ret
+		return
 	}
 
 	// Returns total value of the results of f.
@@ -110,7 +110,7 @@ impl Query {
 			r = self.uncachedSum(f)
 		}
 		self.readUnlock()
-		ret
+		return
 	}
 
 	fn cachedCount(*self, f: fn(T): bool): (n: int) {
@@ -119,7 +119,7 @@ impl Query {
 				n++
 			}
 		}
-		ret
+		return
 	}
 
 	fn uncachedCount(*self, f: fn(T): bool): (n: int) {
@@ -137,7 +137,7 @@ impl Query {
 				n++
 			}
 		}
-		ret
+		return
 	}
 
 	// Counts values by condition.
@@ -150,16 +150,16 @@ impl Query {
 			n = self.uncachedCount(f)
 		}
 		self.readUnlock()
-		ret
+		return
 	}
 
 	fn cachedContains(*self, f: fn(T): bool): bool {
 		for _, v in self.cache {
 			if f(v) {
-				ret true
+				return true
 			}
 		}
-		ret false
+		return false
 	}
 
 	fn uncachedContains(*self, f: fn(T): bool): bool {
@@ -174,10 +174,10 @@ impl Query {
 				panic("ldb: corrupted database")
 			}
 			if f(v) {
-				ret true
+				return true
 			}
 		}
-		ret false
+		return false
 	}
 
 	// Reports whether data includes at least one value reported true by f.
@@ -189,7 +189,7 @@ impl Query {
 			r = self.uncachedContains(f)
 		}
 		self.readUnlock()
-		ret r
+		return r
 	}
 
 	fn cachedWhere(*self, f: fn(T): bool) {
@@ -228,7 +228,7 @@ impl Query {
 		} else {
 			self.uncachedWhere(f)
 		}
-		ret *self
+		return *self
 	}
 
 	// Orders data by result data of f.
@@ -241,13 +241,13 @@ impl Query {
 		slices::SortFunc(self.cache, fn|x, y| {
 			r0, r1 := f(x), f(y)
 			if r0 == r1 {
-				ret 0
+				return 0
 			} else if r0 > r1 {
-				ret +1
+				return +1
 			}
-			ret -1
+			return -1
 		})
-		ret self
+		return self
 	}
 
 	// Orders data by result data of f.
@@ -260,13 +260,13 @@ impl Query {
 		slices::SortFunc(self.cache, fn|x, y| {
 			r0, r1 := f(x), f(y)
 			if r0 == r1 {
-				ret 0
+				return 0
 			} else if r0 < r1 {
-				ret +1
+				return +1
 			}
-			ret -1
+			return -1
 		})
-		ret self
+		return self
 	}
 
 	fn GroupBy[E: comparable](*self, f: fn(T): E): GroupByQuery[E, T] {
@@ -280,7 +280,7 @@ impl Query {
 			e := f(v)
 			groups[e] = append(groups[e], v)
 		}
-		ret GroupByQuery[E, T]{
+		return GroupByQuery[E, T]{
 			groups: groups,
 		}
 	}
@@ -292,7 +292,7 @@ impl Query {
 		}
 
 		slices::Reverse(self.cache)
-		ret *self
+		return *self
 	}
 
 	// Returns query result as slice.
@@ -302,7 +302,7 @@ impl Query {
 			self.Cache()
 		}
 		self.readUnlock()
-		ret self.cache
+		return self.cache
 	}
 
 	// Final stage of the Query with no result.
@@ -334,7 +334,7 @@ struct GroupByQuery[E: comparable, T] {
 impl GroupByQuery {
 	// Returns number of groups.
 	fn Len(*self): int {
-		ret len(self.groups)
+		return len(self.groups)
 	}
 
 	// Returns maximum value by result of f.
@@ -343,7 +343,7 @@ impl GroupByQuery {
 		for e, g in self.groups {
 			max[e] = groupMax(g, f)
 		}
-		ret max
+		return max
 	}
 
 	// Returns minimum value by result of f.
@@ -352,7 +352,7 @@ impl GroupByQuery {
 		for e, g in self.groups {
 			min[e] = groupMin(g, f)
 		}
-		ret min
+		return min
 	}
 
 	// Returns total value of the results of f.
@@ -362,7 +362,7 @@ impl GroupByQuery {
 		for e, g in self.groups {
 			t[e] = groupSum(g, f)
 		}
-		ret t
+		return t
 	}
 
 	// Returns average value of the results of f.
@@ -373,7 +373,7 @@ impl GroupByQuery {
 		for e, g in self.groups {
 			t[e] = groupAvg(g, f)
 		}
-		ret t
+		return t
 	}
 
 	// Maps group data to result of f.
@@ -382,7 +382,7 @@ impl GroupByQuery {
 		for (mut e, mut g) in self.groups {
 			groups[e] = f(Group[T]{group: g})
 		}
-		ret groups
+		return groups
 	}
 
 	// Filters groups by result of f.
@@ -392,12 +392,12 @@ impl GroupByQuery {
 				delete(self.groups, e)
 			}
 		}
-		ret *self
+		return *self
 	}
 
 	// Returns query result as map.
 	fn Unwrap(*self): map[E][]T {
-		ret self.groups
+		return self.groups
 	}
 }
 
@@ -415,30 +415,30 @@ struct Group[T] {
 impl Group {
 	// Returns number of values in the group.
 	fn Len(*self): int {
-		ret len(self.group)
+		return len(self.group)
 	}
 
 	// Returns maximum value by result of f.
 	fn Max[N: numeric](*self, f: fn(T): N): (r: N) {
-		ret groupMax(self.group, f)
+		return groupMax(self.group, f)
 	}
 
 	// Returns minimum value by result of f.
 	fn Min[N: numeric](*self, f: fn(T): N): (r: N) {
-		ret groupMin(self.group, f)
+		return groupMin(self.group, f)
 	}
 
 	// Returns total value of the results of f.
 	// The start value is zero.
 	fn Sum[N: numeric](*self, f: fn(T): N): (r: N) {
-		ret groupSum(self.group, f)
+		return groupSum(self.group, f)
 	}
 
 	// Returns average value of the results of f.
 	// The start value is zero to sum.
 	// Divides total value by length of the group.
 	fn Avg[N: numeric](*self, f: fn(T): N): (r: N) {
-		ret groupAvg(self.group, f)
+		return groupAvg(self.group, f)
 	}
 }
 
@@ -452,7 +452,7 @@ fn groupMax[N: numeric, T](group: []T, f: fn(T): N): (r: N) {
 			r = m
 		}
 	}
-	ret
+	return
 }
 
 fn groupMin[N: numeric, T](group: []T, f: fn(T): N): (r: N) {
@@ -465,7 +465,7 @@ fn groupMin[N: numeric, T](group: []T, f: fn(T): N): (r: N) {
 			r = m
 		}
 	}
-	ret
+	return
 }
 
 fn groupSum[N: numeric, T](group: []T, f: fn(T): N): (r: N) {
@@ -473,10 +473,10 @@ fn groupSum[N: numeric, T](group: []T, f: fn(T): N): (r: N) {
 	for _, v in group {
 		r += f(v)
 	}
-	ret
+	return
 }
 
 fn groupAvg[N: numeric, T](group: []T, f: fn(T): N): (r: N) {
 	t := groupSum(group, f)
-	ret t / N(len(group))
+	return t / N(len(group))
 }

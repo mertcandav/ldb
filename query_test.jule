@@ -7,7 +7,7 @@ use "std/testing"
 struct pseudoData {
 	Int:    int
 	Float:  f64
-	String: str
+	String: string
 }
 
 let pseudoDatas: []pseudoData = [
@@ -23,8 +23,8 @@ let pseudoDatas: []pseudoData = [
 ]
 
 fn getTestQuery(): Query[pseudoData] {
-	ret Query[pseudoData]{
-		data: nil, // use cache
+	return Query[pseudoData]{
+		data:  nil, // use cache
 		cache: append(make([]pseudoData, 0), pseudoDatas...),
 	}
 }
@@ -74,12 +74,12 @@ fn testQueryWhere(t: &testing::T) {
 		Unwrap()
 	if len(r) != len(expected) {
 		t.Errorf("Query.Where: returns unexpected result")
-		ret
+		return
 	}
 	for i in r {
 		if r[i] != expected[i] {
 			t.Errorf("Query.Where: returns unexpected result")
-			ret
+			return
 		}
 	}
 }
@@ -91,13 +91,13 @@ fn testQueryReverse(t: &testing::T) {
 		Unwrap()
 	if len(r) != len(pseudoDatas) {
 		t.Errorf("Query.Reverse: returns unexpected result")
-		ret
+		return
 	}
 	mut j := len(pseudoDatas) - 1
 	for i in r {
 		if r[i] != pseudoDatas[j] {
 			t.Errorf("Query.Reverse: returns unexpected result")
-			ret
+			return
 		}
 		j--
 	}

@@ -19,7 +19,7 @@ struct LDB {
 	// Internal cache for the collections.
 	// Returns the common collection for the name, if collection is already connected.
 	// Also used to check if there is any collection is connected to database.
-	cache: map[str]arbitraryCollection
+	cache: map[string]arbitraryCollection
 }
 
 impl LDB {
@@ -30,13 +30,13 @@ impl LDB {
 
 	// Reports whether the database connection is open.
 	fn IsOpen(&self): bool {
-		ret self.file != nil
+		return self.file != nil
 	}
 
 	// Returns collection from the database.
 	// If collection is not exist in the specified name, it will be created.
 	// Type T must be supported by the standard JSON package.
-	async fn GetCollection[T](mut &self, name: str)!: &Collection[T] {
+	async fn GetCollection[T](mut &self, name: string)!: &Collection[T] {
 		self.readLock().await
 		defer { self.readUnlock() }
 
@@ -50,7 +50,7 @@ impl LDB {
 		// If cache is not initialized yet, do it.
 		// We will use it eventually.
 		if self.cache == nil {
-			self.cache = map[str]arbitraryCollection{}
+			self.cache = map[string]arbitraryCollection{}
 		}
 
 		// Check whether the collection name is exist in the cache.
@@ -58,7 +58,7 @@ impl LDB {
 		// We should return common instance for collections.
 		cache, ok := self.cache[name]
 		if ok {
-			ret unsafe { *(*&Collection[T])(&cache) }
+			return unsafe { *(*&Collection[T])(&cache) }
 		}
 
 		// Collection is not cached, so it is not connected to database.
@@ -70,14 +70,14 @@ impl LDB {
 
 		// Add collection instance to the cache and return.
 		self.cache[name] = unsafe { *(*arbitraryCollection)(&collection) }
-		ret collection
+		return collection
 	}
 
 	// Removes collection from the database.
 	// If collection is not exist in the specified name, does nothing.
 	// If any collection linked to the name currently, it will fail.
 	// Close the collection connection before drop it.
-	async fn DeleteCollection(mut &self, name: str)! {
+	async fn DeleteCollection(mut &self, name: string)! {
 		self.writeLock().await
 		defer { self.writeUnlock() }
 
@@ -115,7 +115,7 @@ impl LDB {
 	}
 
 	// Returns names of collections.
-	async fn Collections(&self)!: []str {
+	async fn Collections(&self)!: []string {
 		self.readLock().await
 		defer { self.readUnlock() }
 
@@ -123,7 +123,7 @@ impl LDB {
 			panic("LDB.Collections: database connection is closed")
 		}
 
-		ret readCollections(self.file).await?
+		return readCollections(self.file).await?
 	}
 
 	// Closes the database connection.
@@ -140,7 +140,7 @@ impl LDB {
 
 // Opens new LDB by path.
 // If database is not exist, will be created.
-fn Open(path: str)!: &LDB {
+fn Open(path: string)!: &LDB {
 	mut f := os::OpenFile(path, os::O_RDWR|os::O_CREATE, 0666)?
-	ret &LDB{file: f}
+	return &LDB{file: f}
 }

@@ -15,7 +15,7 @@ struct scanner {
 
 impl scanner {
 	fn new(mut data: []byte): scanner {
-		ret scanner{data: data, i: 0}
+		return scanner{data: data, i: 0}
 	}
 
 	fn scan(mut *self): []byte {
@@ -26,9 +26,9 @@ impl scanner {
 		end := self.i + i
 		mut data := self.data[self.i:end]
 		if len(data) == 0 { // EOF
-			ret nil
+			return nil
 		}
 		self.i = end + 1 // advance to zero byte
-		ret data
+		return data
 	}
 }

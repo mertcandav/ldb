@@ -41,32 +41,32 @@ fn newDataScanner(mut r: io::Reader): &bufio::Scanner {
 	mut scan := bufio::Scanner.New(r)
 	scan.Split(bufio::ScanLines)
 	scan.Buffer(nil, int.Max)
-	ret scan
+	return scan
 }
 
 async fn clearDatabase(mut file: &os::File)! {
 	file.Truncate(0).await?
 }
 
-async fn createCollection[T](mut db: &LDB, name: str)!: &Collection[T] {
+async fn createCollection[T](mut db: &LDB, name: string)!: &Collection[T] {
 	mut offs := db.file.Seek(0, io::SeekEnd).await?
 	mut r := name + "\x00\x00"
 	if offs > 0 {
 		// Add new-line if database is not empty.
 		r = "\n" + r
 	}
-	db.file.WriteStr(r).await?
+	db.file.WriteString(r).await?
 	offs = db.file.Seek(0, io::SeekEnd).await?
 	offs-- // point to EOF byte
-	ret &Collection[T]{
-		db: db,
+	return &Collection[T]{
+		db:   db,
 		name: name,
 		offs: offs,
-		len: _EMPTY_LEN,
+		len:  _EMPTY_LEN,
 	}
 }
 
-async fn dropCollection(mut file: &os::File, name: str)! {
+async fn dropCollection(mut file: &os::File, name: string)! {
 	file.Seek(0, io::SeekStart).await?
 	mut scan := newDataScanner(file)
 	mut offs, mut lastoffs := i64(0), i64(0)
@@ -89,7 +89,7 @@ async fn dropCollection(mut file: &os::File, name: str)! {
 		}
 		mut line := scan.Token()
 		collectionName, _ := splitLine(line)
-		remove = unsafe::BytesStr(collectionName) == name
+		remove = unsafe::BytesString(collectionName) == name
 		lastoffs = offs
 		if !scan.EOF() {
 			offs++ // new-line
@@ -98,21 +98,21 @@ async fn dropCollection(mut file: &os::File, name: str)! {
 	}
 }
 
-async fn readCollection[T](mut db: &LDB, name: str)!: &Collection[T] {
+async fn readCollection[T](mut db: &LDB, name: string)!: &Collection[T] {
 	db.file.Seek(0, io::SeekStart).await?
 	mut scan := newDataScanner(db.file)
 	mut offs := i64(0)
 	for {
 		mut ok := scan.Scan().await?
 		if !ok {
-			ret nil
+			return nil
 		}
 		if !scan.EOF() {
 			offs++ // new-line
 		}
 		mut line := scan.Token()
 		collectionName, datalen := splitLine(line)
-		if unsafe::BytesStr(collectionName) != name {
+		if unsafe::BytesString(collectionName) != name {
 			offs += i64(len(line))
 			continue
 		}
@@ -121,11 +121,11 @@ async fn readCollection[T](mut db: &LDB, name: str)!: &Collection[T] {
 
 		mut collection := new(Collection[T])
 		collection.db = db
-		collection.name = str(collectionName)
+		collection.name = string(collectionName)
 		collection.offs = offs
 		collection.len = datalen
 
-		ret collection
+		return collection
 	}
 }
 
@@ -136,7 +136,7 @@ async fn readCollectionData(mut file: &os::File, offs: i64, len: i64)!: []byte {
 	if i64(n) != len {
 		panic("ldb: corrupted database")
 	}
-	ret data
+	return data
 }
 
 async fn writeCollection[T](mut collection: &Collection[T], data: []byte)! {
@@ -150,7 +150,7 @@ async fn writeCollection[T](mut collection: &Collection[T], data: []byte)! {
 }
 
 // Reads collection names from the database file.
-async fn readCollections(mut f: &os::File)!: (collections: []str) {
+async fn readCollections(mut f: &os::File)!: (collections: []string) {
 	f.Seek(0, io::SeekStart).await?
 	mut scan := newDataScanner(f)
 	for {
@@ -160,9 +160,9 @@ async fn readCollections(mut f: &os::File)!: (collections: []str) {
 		}
 		mut line := scan.Token()
 		name, _ := splitLine(line)
-		collections = append(collections, str(name))
+		collections = append(collections, string(name))
 	}
-	ret
+	return
 }
 
 fn splitLine(mut line: []byte): (name: []byte, datalen: i64) {
@@ -175,10 +175,10 @@ fn splitLine(mut line: []byte): (name: []byte, datalen: i64) {
 	if len(name) == 0 || datalen == 0 {
 		panic("ldb: corrupted database")
 	}
-	ret
+	return
 }
 
 // Reports whether the name is suitable for LDB collection.
-fn isValidName(name: str): bool {
-	ret bytes::IndexByte(unsafe::StrBytes(name), _EOF) < 0
+fn isValidName(name: string): bool {
+	return bytes::IndexByte(unsafe::StringBytes(name), _EOF) < 0
 }
