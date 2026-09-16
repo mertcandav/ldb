@@ -72,61 +72,61 @@ Returns name of the collection\.
 
 ### Len
 ```jule
-async fn Len(&self)!: (n: int)
+fn Len(&self)!: (n: int)
 ```
 Returns number of records in the collection\.
 
 ### Iter
 ```jule
-async fn Iter(mut &self, f: fn(mut T))!
+fn Iter(mut &self, f: fn(mut T))!
 ```
 Iterates values of collection\.
 
 ### Iter2
 ```jule
-async fn Iter2(mut &self, f: fn(mut T): bool)!
+fn Iter2(mut &self, f: fn(mut T): bool)!
 ```
 Iterates values of collection\. Breaks iteration when function f returns false\.
 
 ### Append
 ```jule
-async fn Append(mut &self, mut values: ...T)!
+fn Append(mut &self, mut values: ...T)!
 ```
 Appends values to collection\.
 
 ### Map
 ```jule
-async fn Map(mut &self, f: fn(T): T)!
+fn Map(mut &self, f: fn(T): T)!
 ```
 Maps data to result of f\.
 
 ### Update
 ```jule
-async fn Update(mut &self, f: fn(mut &t: *T))!
+fn Update(mut &self, f: fn(mut &t: *T))!
 ```
 Updates data by f\. The function f must filter data if needed and update the mutable reference\.
 
 ### Delete
 ```jule
-async fn Delete(mut &self, f: fn(T): bool)!
+fn Delete(mut &self, f: fn(T): bool)!
 ```
 Filters and removes matched data by f\.
 
 ### ClearCache
 ```jule
-async fn ClearCache(mut &self)
+fn ClearCache(mut &self)
 ```
 Clears internal cache\. It may help to reduce memory use\. But triggers caching and reading from non\-volatile memory in next CRUD\. Unnecessary use of this method may cause significant performance issues\.
 
 ### Query
 ```jule
-async fn Query(mut &self): Query[T]
+fn Query(mut &self): Query[T]
 ```
 Returns ready\-to\-use query for the collection\. Panics if database\-read fails\. Locks the read\-lock, avoid misuse of Query, otherwise behavior is undefined\.
 
 ### Close
 ```jule
-async fn Close(mut &self)
+fn Close(mut &self)
 ```
 Drops the collection ownership\. When a collection closed, all collections will be closed for the same name\.
 
@@ -146,31 +146,31 @@ Reports whether the database connection is open\.
 
 ### GetCollection
 ```jule
-async fn GetCollection[T](mut &self, name: string)!: &Collection[T]
+fn GetCollection[T](mut &self, name: string)!: &Collection[T]
 ```
 Returns collection from the database\. If collection is not exist in the specified name, it will be created\. Type T must be supported by the standard JSON package\.
 
 ### DeleteCollection
 ```jule
-async fn DeleteCollection(mut &self, name: string)!
+fn DeleteCollection(mut &self, name: string)!
 ```
 Removes collection from the database\. If collection is not exist in the specified name, does nothing\. If any collection linked to the name currently, it will fail\. Close the collection connection before drop it\.
 
 ### ClearCollections
 ```jule
-async fn ClearCollections(mut &self)!
+fn ClearCollections(mut &self)!
 ```
 Removes all collections from the database\. If any collection linked currently, it will fail\. Close the collection connections before drop them\.
 
 ### Collections
 ```jule
-async fn Collections(&self)!: []string
+fn Collections(&self)!: []string
 ```
 Returns names of collections\.
 
 ### Close
 ```jule
-async fn Close(&self)
+fn Close(&self)
 ```
 Closes the database connection\. If connection is already closed, it does nothing\.
 

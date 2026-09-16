@@ -34,14 +34,14 @@ impl Collection {
 
 	// Checks the database connection and panics with msg if it is closed.
 	// Locks for the relevant access mode before return.
-	async fn isOpen(&self, access: int, msg: string) {
+	fn isOpen(&self, access: int, msg: string) {
 		if self.db == nil {
 			panic(msg)
 		}
 		if access&_WRITE == _WRITE {
-			self.db.writeLock().await
+			self.db.writeLock()
 		} else {
-			self.db.readLock().await
+			self.db.readLock()
 		}
 		if !self.db.IsOpen() {
 			panic(msg)
@@ -49,18 +49,18 @@ impl Collection {
 	}
 
 	// Returns collection data from the non-volatile memory.
-	async fn readData(&self)!: []byte {
+	fn readData(&self)!: []byte {
 		if self.cache == nil {
-			self.cache = readCollectionData(self.db.file, self.offs, self.len).await?
+			self.cache = readCollectionData(self.db.file, self.offs, self.len)?
 		}
 		return self.cache
 	}
 
 	// Returns number of records in the collection.
-	async fn Len(&self)!: (n: int) {
-		self.isOpen(_READ, "Collection.Len: database connection is closed").await
+	fn Len(&self)!: (n: int) {
+		self.isOpen(_READ, "Collection.Len: database connection is closed")
 
-		mut data := self.readData().await?
+		mut data := self.readData()?
 		self.db.readUnlock()
 
 		for _, b in data {
@@ -73,10 +73,10 @@ impl Collection {
 	}
 
 	// Iterates values of collection.
-	async fn Iter(mut &self, f: fn(mut T))! {
-		self.isOpen(_READ, "Collection.Iter: database connection is closed").await
+	fn Iter(mut &self, f: fn(mut T))! {
+		self.isOpen(_READ, "Collection.Iter: database connection is closed")
 
-		mut data := self.readData().await?
+		mut data := self.readData()?
 		self.db.readUnlock()
 
 		mut scan := scanner.new(data)
@@ -93,10 +93,10 @@ impl Collection {
 
 	// Iterates values of collection.
 	// Breaks iteration when function f returns false.
-	async fn Iter2(mut &self, f: fn(mut T): bool)! {
-		self.isOpen(_READ, "Collection.Iter: database connection is closed").await
+	fn Iter2(mut &self, f: fn(mut T): bool)! {
+		self.isOpen(_READ, "Collection.Iter: database connection is closed")
 
-		mut data := self.readData().await?
+		mut data := self.readData()?
 		self.db.readUnlock()
 
 		mut scan := scanner.new(data)
@@ -114,11 +114,11 @@ impl Collection {
 	}
 
 	// Appends values to collection.
-	async fn Append(mut &self, mut values: ...T)! {
-		self.isOpen(_WRITE, "Collection.Append: database connection is closed").await
+	fn Append(mut &self, mut values: ...T)! {
+		self.isOpen(_WRITE, "Collection.Append: database connection is closed")
 		defer { self.db.writeUnlock() }
 
-		mut data := self.readData().await?
+		mut data := self.readData()?
 		data = data[:len(data)-1] // remove trailing EOF byte
 		for _, v in values {
 			bytes := json::Encode(v)?
@@ -127,17 +127,17 @@ impl Collection {
 		}
 		data = append(data, _EOF) // Add trailing EOF zero byte for the data.
 
-		writeCollection(self, data).await?
+		writeCollection(self, data)?
 		self.len = i64(len(data))
 		self.cache = data
 	}
 
 	// Maps data to result of f.
-	async fn Map(mut &self, f: fn(T): T)! {
-		self.isOpen(_WRITE, "Collection.Map: database connection is closed").await
+	fn Map(mut &self, f: fn(T): T)! {
+		self.isOpen(_WRITE, "Collection.Map: database connection is closed")
 		defer { self.db.writeUnlock() }
 
-		mut data := self.readData().await?
+		mut data := self.readData()?
 		mut scan := scanner.new(data)
 		data = make([]byte, 0)
 		for {
@@ -154,18 +154,18 @@ impl Collection {
 		}
 		data = append(data, _EOF) // Add trailing EOF zero byte for the data.
 
-		writeCollection(self, data).await?
+		writeCollection(self, data)?
 		self.len = i64(len(data))
 		self.cache = data
 	}
 
 	// Updates data by f.
 	// The function f must filter data if needed and update the mutable reference.
-	async fn Update(mut &self, f: fn(mut &t: *T))! {
-		self.isOpen(_WRITE, "Collection.Update: database connection is closed").await
+	fn Update(mut &self, f: fn(mut &t: *T))! {
+		self.isOpen(_WRITE, "Collection.Update: database connection is closed")
 		defer { self.db.writeUnlock() }
 
-		mut data := self.readData().await?
+		mut data := self.readData()?
 		mut scan := scanner.new(data)
 		data = make([]byte, 0)
 		for {
@@ -182,17 +182,17 @@ impl Collection {
 		}
 		data = append(data, _EOF) // Add trailing EOF zero byte for the data.
 
-		writeCollection(self, data).await?
+		writeCollection(self, data)?
 		self.len = i64(len(data))
 		self.cache = data
 	}
 
 	// Filters and removes matched data by f.
-	async fn Delete(mut &self, f: fn(T): bool)! {
-		self.isOpen(_WRITE, "Collection.Delete: database connection is closed").await
+	fn Delete(mut &self, f: fn(T): bool)! {
+		self.isOpen(_WRITE, "Collection.Delete: database connection is closed")
 		defer { self.db.writeUnlock() }
 
-		mut data := self.readData().await?
+		mut data := self.readData()?
 		mut scan := scanner.new(data)
 		data = make([]byte, 0)
 		for {
@@ -209,7 +209,7 @@ impl Collection {
 		}
 		data = append(data, _EOF) // Add trailing EOF zero byte for the data.
 
-		writeCollection(self, data).await?
+		writeCollection(self, data)?
 		self.len = i64(len(data))
 		self.cache = data
 	}
@@ -218,8 +218,8 @@ impl Collection {
 	// It may help to reduce memory use.
 	// But triggers caching and reading from non-volatile memory in next CRUD.
 	// Unnecessary use of this method may cause significant performance issues.
-	async fn ClearCache(mut &self) {
-		self.db.writeLock().await
+	fn ClearCache(mut &self) {
+		self.db.writeLock()
 		defer { self.db.writeUnlock() }
 		self.cache = nil
 	}
@@ -227,10 +227,10 @@ impl Collection {
 	// Returns ready-to-use query for the collection.
 	// Panics if database-read fails.
 	// Locks the read-lock, avoid misuse of Query, otherwise behavior is undefined.
-	async fn Query(mut &self): Query[T] {
-		self.isOpen(_READ, "Collection.Query: database connection is closed").await
+	fn Query(mut &self): Query[T] {
+		self.isOpen(_READ, "Collection.Query: database connection is closed")
 
-		mut data := self.readData().await!
+		mut data := self.readData()!
 		return Query[T]{
 			owner: self,
 			data:  data,
@@ -239,9 +239,9 @@ impl Collection {
 
 	// Drops the collection ownership.
 	// When a collection closed, all collections will be closed for the same name.
-	async fn Close(mut &self) {
-		self.isOpen(_WRITE, "Collection.Close: database connection is closed").await
-		self.mu.Lock().await
+	fn Close(mut &self) {
+		self.isOpen(_WRITE, "Collection.Close: database connection is closed")
+		self.mu.Lock()
 		defer { self.mu.Unlock() }
 
 		delete(self.db.cache, self.name)

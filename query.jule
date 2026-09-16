@@ -67,7 +67,7 @@ impl Query {
 					break
 				}
 				let mut v: T
-				json::Decode(token, &v) else {
+				json::Decode(token, &v) catch {
 					panic("ldb: corrupted database")
 				}
 				self.cache = append(self.cache, v)
@@ -92,7 +92,7 @@ impl Query {
 				break
 			}
 			let mut v: T
-			json::Decode(token, &v) else {
+			json::Decode(token, &v) catch {
 				panic("ldb: corrupted database")
 			}
 			r += f(v)
@@ -130,7 +130,7 @@ impl Query {
 				break
 			}
 			let mut v: T
-			json::Decode(token, &v) else {
+			json::Decode(token, &v) catch {
 				panic("ldb: corrupted database")
 			}
 			if f(v) {
@@ -170,7 +170,7 @@ impl Query {
 				break
 			}
 			let mut v: T
-			json::Decode(token, &v) else {
+			json::Decode(token, &v) catch {
 				panic("ldb: corrupted database")
 			}
 			if f(v) {
@@ -211,7 +211,7 @@ impl Query {
 				break
 			}
 			let mut v: T
-			json::Decode(token, &v) else {
+			json::Decode(token, &v) catch {
 				panic("ldb: corrupted database")
 			}
 			if f(v) {

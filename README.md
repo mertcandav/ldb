@@ -25,14 +25,14 @@ struct User {
 	Age:  int
 }
 
-async fn main() {
+fn main() {
 	// Open database, it will be created if not exist.
 	mut db := Open("test.db")!
-	defer { db.Close().await }
+	defer { db.Close() }
 
 	// Get users collection, it will be created if not exist.
-	mut users := db.GetCollection[User]("users").await!
-	defer { users.Close().await }
+	mut users := db.GetCollection[User]("users")!
+	defer { users.Close() }
 
 	// Add sample data.
 	users.Append(
@@ -44,11 +44,11 @@ async fn main() {
 		{"Fizz", 53},
 		{"Buzz", 36},
 		{"ABC", 36},
-		{"XYZ", 18}).await!
+		{"XYZ", 18})!
 
 	// Query for user count per age.
 	// Result is: map[age]usercount
-	userCounts := users.Query().await.
+	userCounts := users.Query().
 		Where(fn|user| user.Age > 0).
 		GroupBy(fn|user| user.Age).
 		Map(fn|group| group.Len())
@@ -61,24 +61,24 @@ async fn main() {
 
 ```rust
 // SELECT * FROM users
-users.Query().await.Unwrap()
+users.Query().Unwrap()
 ```
 ```rust
 // SELECT * FROM users
 // WHERE age > 25
-users.Query().await.
+users.Query().
 	Where(fn|u| u.Age > 25).
 	Unwrap()
 ```
 ```rust
 // SELECT SUM(Price) FROM Products;
-products.Query().await.
+products.Query().
   Sum(fn|p| p.Price)
 ```
 ```rust
 // SELECT * FROM Products
 // ORDER BY Price DESC;
-products.Query().await.
+products.Query().
   OrderByDesc(fn|p| p.Price).
   Unwrap()
 ```
@@ -92,11 +92,11 @@ customers.Append({
 	City: "Stavanger",
 	PostalCode: "4006",
 	Country: "Norway",
-}).await!
+})!
 ```
 ```rust
 // DELETE FROM Customers WHERE Name = 'Alfreds Futterkiste';
-customers.Delete(fn|c| c.Name == "Alfreds Futterkiste").await!
+customers.Delete(fn|c| c.Name == "Alfreds Futterkiste")!
 ```
 ```rust
 // UPDATE Customers
@@ -107,7 +107,7 @@ customers.Update(fn|mut c| {
 		c.ContactName = "Alfred Schmidt"
 		c.City = "Frankfurt"
 	}
-}).await!
+})!
 ```
 
 ## License

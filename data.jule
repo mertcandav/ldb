@@ -44,19 +44,19 @@ fn newDataScanner(mut r: io::Reader): &bufio::Scanner {
 	return scan
 }
 
-async fn clearDatabase(mut file: &os::File)! {
-	file.Truncate(0).await?
+fn clearDatabase(mut file: &os::File)! {
+	file.Truncate(0)?
 }
 
-async fn createCollection[T](mut db: &LDB, name: string)!: &Collection[T] {
-	mut offs := db.file.Seek(0, io::SeekEnd).await?
+fn createCollection[T](mut db: &LDB, name: string)!: &Collection[T] {
+	mut offs := db.file.Seek(0, io::SeekEnd)?
 	mut r := name + "\x00\x00"
 	if offs > 0 {
 		// Add new-line if database is not empty.
 		r = "\n" + r
 	}
-	db.file.WriteString(r).await?
-	offs = db.file.Seek(0, io::SeekEnd).await?
+	db.file.WriteString(r)?
+	offs = db.file.Seek(0, io::SeekEnd)?
 	offs-- // point to EOF byte
 	return &Collection[T]{
 		db:   db,
@@ -66,24 +66,24 @@ async fn createCollection[T](mut db: &LDB, name: string)!: &Collection[T] {
 	}
 }
 
-async fn dropCollection(mut file: &os::File, name: string)! {
-	file.Seek(0, io::SeekStart).await?
+fn dropCollection(mut file: &os::File, name: string)! {
+	file.Seek(0, io::SeekStart)?
 	mut scan := newDataScanner(file)
 	mut offs, mut lastoffs := i64(0), i64(0)
 	mut remove := false
 	for {
 		if remove {
-			file.Seek(offs, io::SeekStart).await?
-			mut rest := io::ReadAll(file).await?
+			file.Seek(offs, io::SeekStart)?
+			mut rest := io::ReadAll(file)?
 			if scan.EOF() && lastoffs > 0 {
 				lastoffs-- // trim new-line
 			}
-			file.Truncate(lastoffs).await?
-			file.Seek(0, io::SeekEnd).await?
-			file.Write(rest).await?
+			file.Truncate(lastoffs)?
+			file.Seek(0, io::SeekEnd)?
+			file.Write(rest)?
 			break
 		}
-		mut ok := scan.Scan().await?
+		mut ok := scan.Scan()?
 		if !ok {
 			break
 		}
@@ -98,12 +98,12 @@ async fn dropCollection(mut file: &os::File, name: string)! {
 	}
 }
 
-async fn readCollection[T](mut db: &LDB, name: string)!: &Collection[T] {
-	db.file.Seek(0, io::SeekStart).await?
+fn readCollection[T](mut db: &LDB, name: string)!: &Collection[T] {
+	db.file.Seek(0, io::SeekStart)?
 	mut scan := newDataScanner(db.file)
 	mut offs := i64(0)
 	for {
-		mut ok := scan.Scan().await?
+		mut ok := scan.Scan()?
 		if !ok {
 			return nil
 		}
@@ -129,32 +129,32 @@ async fn readCollection[T](mut db: &LDB, name: string)!: &Collection[T] {
 	}
 }
 
-async fn readCollectionData(mut file: &os::File, offs: i64, len: i64)!: []byte {
-	file.Seek(offs, io::SeekStart).await?
+fn readCollectionData(mut file: &os::File, offs: i64, len: i64)!: []byte {
+	file.Seek(offs, io::SeekStart)?
 	mut data := make([]byte, len)
-	n := file.Read(data).await?
+	n := file.Read(data)?
 	if i64(n) != len {
 		panic("ldb: corrupted database")
 	}
 	return data
 }
 
-async fn writeCollection[T](mut collection: &Collection[T], data: []byte)! {
+fn writeCollection[T](mut collection: &Collection[T], data: []byte)! {
 	mut file := collection.db.file
-	file.Seek(collection.offs+collection.len, io::SeekStart).await?
-	mut rest := io::ReadAll(file).await?
-	file.Truncate(collection.offs).await?
-	file.Seek(0, io::SeekEnd).await?
-	file.Write(data).await?
-	file.Write(rest).await?
+	file.Seek(collection.offs+collection.len, io::SeekStart)?
+	mut rest := io::ReadAll(file)?
+	file.Truncate(collection.offs)?
+	file.Seek(0, io::SeekEnd)?
+	file.Write(data)?
+	file.Write(rest)?
 }
 
 // Reads collection names from the database file.
-async fn readCollections(mut f: &os::File)!: (collections: []string) {
-	f.Seek(0, io::SeekStart).await?
+fn readCollections(mut f: &os::File)!: (collections: []string) {
+	f.Seek(0, io::SeekStart)?
 	mut scan := newDataScanner(f)
 	for {
-		ok := scan.Scan().await?
+		ok := scan.Scan()?
 		if !ok {
 			break
 		}
